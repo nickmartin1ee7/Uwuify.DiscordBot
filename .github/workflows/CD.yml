@@ -15,7 +15,10 @@ jobs:
     - name: Sanity Check
       run: find .
     - name: Docker Compose
-      run: docker-compose  -p uwuifyenvironment up -d --no-build --force-recreate --remove-orphans  seq uwuify.discordbot.workerservice
+      env:
+        SUDOER:  ${{ secrets.SUDO_CD }}
+      run: 
+        echo "$SUDOER" | xargs sudo -S docker-compose  -p uwuifyenvironment up -d --no-build --force-recreate --remove-orphans  seq uwuify.discordbot.workerservice
     - name: Clean Bash History
       continue-on-error: true
       run:
