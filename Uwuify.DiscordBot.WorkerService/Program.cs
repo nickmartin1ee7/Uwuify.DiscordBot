@@ -1,24 +1,55 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Discord.Commands;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using System;
+using Uwuify.DiscordBot.WorkerService.Models;
+using Uwuify.DiscordBot.WorkerService.Services;
 
 namespace Uwuify.DiscordBot.WorkerService
 {
-    public class Program
+    public static class Program
     {
+        private static ILogger _logger = new LoggerFactory()
+            .CreateLogger(nameof(Program));
+
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            var host = CreateHostBuilder(args).Build();
+
+            try
+            {
+                host.Run();
+            }
+            catch (Exception e)
+            {
+                _logger.LogCritical("Hosted service crashed! Exception: {e}", e);
+                throw;
+            }
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
+        public static IHostBuilder CreateHostBuilder(string[] args)
+        {
+            var configuration = new ConfigurationBuilder()
+#if DEBUG
+                .AddJsonFile("appsettings.Development.json")
+#else
+
+                .AddJsonFile("appsettings.json")
+#endif
+                .Build();
+
+            return Host.CreateDefaultBuilder(args)
                 .ConfigureServices((hostContext, services) =>
                 {
+                    services.AddSingleton<IConfiguration>();
+                    services.AddSingleton<DiscordSettings>(configuration.GetSection(nameof(DiscordSettings)).Get<DiscordSettings>());
+                    services.AddSingleton<CommandHandlingService>();
+                    services.AddSingleton<CommandService>();
+                    services.AddSingleton<DiscordBotClient>();
                     services.AddHostedService<Worker>();
                 });
+        }
     }
 }
