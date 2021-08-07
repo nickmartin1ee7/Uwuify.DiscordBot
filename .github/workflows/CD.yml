@@ -34,4 +34,4 @@ jobs:
     - name: Clean Bash History
       continue-on-error: true
       run:
-        cat /dev/null > ~/.bash_history && history -c && && history -w
+        cat /dev/null > ~/.bash_history && history -cw
