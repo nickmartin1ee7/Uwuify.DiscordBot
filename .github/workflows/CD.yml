@@ -24,7 +24,7 @@ jobs:
       
     - name: Stop Discord Bot Service
       env:
-        SUDOER:  ${{ secrets.SUDO_CD }}
+        SUDOER: ${{ secrets.SUDO_CD }}
       run: 
         echo "$SUDOER" | xargs sudo -S service uwuify-discord-bot stop
         
@@ -33,7 +33,7 @@ jobs:
       
     - name: Start Discord Bot service
       env:
-        SUDOER:  ${{ secrets.SUDO_CD }}
+        SUDOER: ${{ secrets.SUDO_CD }}
       run:
         echo "$SUDOER" | xargs sudo -S service uwuify-discord-bot restart
         
