@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -37,7 +36,6 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
         public async Task HelpAsync() =>
             await ReplyAsync(string.Join(Environment.NewLine, GetType().GetMethods().Select(m =>
             {
-                var cmds = new List<string>();
                 var attributes = m.GetCustomAttributes();
                 var sb = new StringBuilder();
 
