@@ -1,4 +1,5 @@
 using Discord.Commands;
+using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -43,8 +44,9 @@ namespace Uwuify.DiscordBot.WorkerService
             return Host.CreateDefaultBuilder(args)
                 .ConfigureServices((hostContext, services) =>
                 {
-                    services.AddSingleton<IConfiguration>();
+                    services.AddSingleton<IConfiguration>(configuration);
                     services.AddSingleton<DiscordSettings>(configuration.GetSection(nameof(DiscordSettings)).Get<DiscordSettings>());
+                    services.AddSingleton<DiscordSocketClient>();
                     services.AddSingleton<CommandHandlingService>();
                     services.AddSingleton<CommandService>();
                     services.AddSingleton<DiscordBotClient>();

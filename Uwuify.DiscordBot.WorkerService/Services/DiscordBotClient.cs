@@ -81,7 +81,7 @@ namespace Uwuify.DiscordBot.WorkerService.Services
 
         private Task OnReadyAsync()
         {
-            _logger.LogInformation($"Connected established and {_client.CurrentUser} is ready.");
+            _logger.LogInformation($"{_client.CurrentUser} is online.");
 
             return Task.CompletedTask;
         }
