@@ -12,25 +12,8 @@ jobs:
     runs-on: self-hosted
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 5.0.x
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Stop Discord Bot Service
-      env:
-        SUDOER:  ${{ secrets.SUDO_CD }}
-      run: 
-        echo "$SUDOER" | xargs sudo -S service uwuify-discord-bot stop
-    - name: Publish
-      run: dotnet publish --no-restore -c Release -o $HOME/Uwuify
-    - name: Start Discord Bot service
-      env:
-        SUDOER:  ${{ secrets.SUDO_CD }}
-      run:
-        echo "$SUDOER" | xargs sudo -S service uwuify-discord-bot restart
+    - name: Docker Compose
+      run: docker-compose  -p uwuifyenvironment up -d --no-build --force-recreate --remove-orphans  seq uwuify.discordbot.workerservice
     - name: Clean Bash History
       continue-on-error: true
       run:
