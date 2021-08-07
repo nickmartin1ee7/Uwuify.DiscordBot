@@ -24,7 +24,7 @@ jobs:
         SUDOER:  ${{ secrets.SUDO_CD }}
       run: 
         echo "$SUDOER" | xargs sudo -S service uwuify-discord-bot stop
-    - name: Build
+    - name: Publish
       run: dotnet publish --no-restore -c Release -o $HOME/Uwuify
     - name: Start Discord Bot service
       env:
