@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Serilog;
 using System;
 using Uwuify.DiscordBot.WorkerService.Models;
 using Uwuify.DiscordBot.WorkerService.Services;
@@ -12,12 +13,22 @@ namespace Uwuify.DiscordBot.WorkerService
 {
     public static class Program
     {
-        private static ILogger _logger = new LoggerFactory()
-            .CreateLogger(nameof(Program));
-
         public static void Main(string[] args)
         {
-            var host = CreateHostBuilder(args).Build();
+            var configuration = new ConfigurationBuilder()
+#if DEBUG
+                .AddJsonFile("appsettings.Development.json")
+#else
+                .AddJsonFile("appsettings.json")
+#endif
+                .Build();
+
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(configuration)
+                .CreateLogger();
+
+
+            var host = CreateHostBuilder(configuration, args).Build();
 
             try
             {
@@ -25,23 +36,20 @@ namespace Uwuify.DiscordBot.WorkerService
             }
             catch (Exception e)
             {
-                _logger.LogCritical("Hosted service crashed! Exception: {e}", e);
-                throw;
+                Log.Fatal(e, "Hosted service crashed!");
+
+            }
+            finally
+            {
+                Log.CloseAndFlush();
             }
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args)
+        public static IHostBuilder CreateHostBuilder(IConfiguration configuration, string[] args)
         {
-            var configuration = new ConfigurationBuilder()
-#if DEBUG
-                .AddJsonFile("appsettings.Development.json")
-#else
-
-                .AddJsonFile("appsettings.json")
-#endif
-                .Build();
 
             return Host.CreateDefaultBuilder(args)
+                .UseSerilog(Log.Logger)
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddSingleton<IConfiguration>(configuration);

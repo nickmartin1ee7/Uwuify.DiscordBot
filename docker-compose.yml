@@ -1,0 +1,20 @@
+version: '3.4'
+
+services:
+  uwuify.discordbot.workerservice:
+    container_name: discordbot
+    image: ${DOCKER_REGISTRY-}uwuifydiscordbotworkerservice
+    build:
+      context: .
+      dockerfile: Uwuify.DiscordBot.WorkerService/Dockerfile
+    links:
+        - seq
+    depends_on:
+        - seq
+  seq:
+    container_name: seq
+    image: datalust/seq:latest
+    ports:
+        - 8081:80
+    environment:
+        - ACCEPT_EULA=Y

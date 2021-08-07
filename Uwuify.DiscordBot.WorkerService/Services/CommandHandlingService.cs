@@ -38,10 +38,14 @@ namespace Uwuify.DiscordBot.WorkerService.Services
 
         private async Task OnCommandExecutedAsync(Optional<CommandInfo> command, ICommandContext context, IResult result)
         {
-            if (result.IsSuccess)
-                return;
 
-            _logger.LogError("Command execution failed.", result, command);
+            if (result.IsSuccess)
+            {
+                _logger.LogInformation("{command} triggered by {user} successfully (#{channel} in {guild}).", command.IsSpecified ? command.Value.Name : "Command", context.Message.Author, context.Channel, context.Guild);
+                return;
+            }
+
+            _logger.LogError("{command} errored when run by {user} (#{channel} in {guild}). Error: {error}", command.IsSpecified ? command.Value.Name : "Command", context.Message.Author, context.Channel, context.Guild, result);
 
             await context.Channel.SendMessageAsync($"That didn't work... {result}");
         }
@@ -62,8 +66,6 @@ namespace Uwuify.DiscordBot.WorkerService.Services
             if (!valid) return;
 
             var context = new SocketCommandContext(_client, socketMessage);
-
-            _logger.LogTrace("Command triggered.", socketMessage, context);
 
             await _commandService.ExecuteAsync(context, argPos, _services);
         }
