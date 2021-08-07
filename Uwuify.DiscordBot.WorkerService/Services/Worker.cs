@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Threading;
@@ -9,13 +8,11 @@ namespace Uwuify.DiscordBot.WorkerService.Services
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
-        private readonly IConfiguration _configuration;
         private readonly DiscordBotClient _client;
 
-        public Worker(ILogger<Worker> logger, IConfiguration configuration, DiscordBotClient client)
+        public Worker(ILogger<Worker> logger, DiscordBotClient client)
         {
             _logger = logger;
-            _configuration = configuration;
             _client = client;
         }
 
