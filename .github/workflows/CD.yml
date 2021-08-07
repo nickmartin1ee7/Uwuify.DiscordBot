@@ -12,6 +12,8 @@ jobs:
     runs-on: self-hosted
 
     steps:
+    - name: Sanity Check
+      run: find .
     - name: Docker Compose
       run: docker-compose  -p uwuifyenvironment up -d --no-build --force-recreate --remove-orphans  seq uwuify.discordbot.workerservice
     - name: Clean Bash History
