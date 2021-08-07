@@ -20,7 +20,7 @@ jobs:
         dotnet-version: 5.0.x
         
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore Uwuify.DiscordBot.sln
       
     - name: Stop Discord Bot Service
       env:
@@ -29,12 +29,14 @@ jobs:
         echo "$SUDOER" | xargs sudo -S service uwuify-discord-bot stop
         
     - name: Publish
-      run: dotnet publish --no-restore -c Release -o $HOME/Uwuify
+      run: dotnet publish Uwuify.DiscordBot.sln --no-restore -c Release -o $HOME/Uwuify
+      
     - name: Start Discord Bot service
       env:
         SUDOER:  ${{ secrets.SUDO_CD }}
       run:
         echo "$SUDOER" | xargs sudo -S service uwuify-discord-bot restart
+        
     - name: Clean Bash History
       continue-on-error: true
       run:
