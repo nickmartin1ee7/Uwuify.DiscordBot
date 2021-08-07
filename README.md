@@ -1,6 +1,6 @@
 # Uwuify.DiscordBot
 
-A discord bot who's single purpose is to Uwuify at your command.
+A discord bot who's primary directive is to convert text into the UwU meme format variant.
 
 ## Status
 
