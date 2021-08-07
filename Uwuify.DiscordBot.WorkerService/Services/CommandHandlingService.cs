@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Uwuify.DiscordBot.WorkerService.Models;
+using Uwuify.Humanizer;
 
 namespace Uwuify.DiscordBot.WorkerService.Services
 {
@@ -47,7 +48,7 @@ namespace Uwuify.DiscordBot.WorkerService.Services
 
             _logger.LogError("{command} errored when run by {user} (#{channel} in {guild}). Error: {error}", command.IsSpecified ? command.Value.Name : "Command", context.Message.Author, context.Channel, context.Guild, result);
 
-            await context.Channel.SendMessageAsync($"That didn't work... {result}");
+            await context.Channel.SendMessageAsync("Sorry, friend... That didn't work!".Uwuify());
         }
 
         private async Task OnMessageReceivedAsync(SocketMessage arg)
