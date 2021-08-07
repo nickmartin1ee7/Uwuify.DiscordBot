@@ -33,7 +33,8 @@ namespace Uwuify.DiscordBot.WorkerService.Services
 
         private async Task UpdateActivityAsync()
         {
-            await _client.SetGameAsync(_discordSettings.StatusMessage, type: ActivityType.CustomStatus);
+            await _client.SetGameAsync(_discordSettings.StatusMessage, type: ActivityType.Playing);
+            _logger.LogInformation("Game Status set to {msg}", _discordSettings.StatusMessage);
         }
 
         private async Task StartClientAsync()
@@ -81,7 +82,7 @@ namespace Uwuify.DiscordBot.WorkerService.Services
 
         private Task OnReadyAsync()
         {
-            _logger.LogInformation($"{_client.CurrentUser} is online.");
+            _logger.LogInformation("{botUser} is online for {guildCount} guilds.", _client.CurrentUser, _client.Guilds.Count);
 
             return Task.CompletedTask;
         }

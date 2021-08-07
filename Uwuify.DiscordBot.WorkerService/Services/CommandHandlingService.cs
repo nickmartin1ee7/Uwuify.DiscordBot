@@ -68,7 +68,11 @@ namespace Uwuify.DiscordBot.WorkerService.Services
 
             var context = new SocketCommandContext(_client, socketMessage);
 
+#if RELEASE
             await _commandService.ExecuteAsync(context, argPos, _services);
+#else
+            _logger.LogDebug("Fake Command triggered by {user} successfully (#{channel} in {guild}).", context.Message.Author, context.Channel, context.Guild);
+#endif
         }
     }
 }
