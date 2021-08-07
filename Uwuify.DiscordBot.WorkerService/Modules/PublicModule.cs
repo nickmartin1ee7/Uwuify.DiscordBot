@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,10 +12,19 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
 {
     public class PublicModule : ModuleBase<SocketCommandContext>
     {
+        [Command("ping")]
+        [Alias("latency")]
+        [Summary("Returns the latency for the socket connection to Discord.")]
+        public async Task PingAsync() =>
+            await ReplyAsync(embed: new EmbedBuilder()
+                .WithTitle("Latency :ping_pong:")
+                .WithDescription($"{Context.Client.Latency} ms")
+                .Build());
+
         [Command("echo")]
         [Summary("Repeats after you... Duh!")]
         public async Task EchoAsync([Remainder] string text) =>
-            await ReplyAsync(text);
+            await ReplyAsync($"{text}");
 
         [Command("uwuify")]
         [Alias("uwu", "owo")]
