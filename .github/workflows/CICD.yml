@@ -1,12 +1,27 @@
-name: CD
+name: CI/CD
 
 on:
-  workflow_run:
-    workflows: ["CI"]
-    types:
-      - completed
+  push:
+    branches: [ main ]
 
 jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+    - name: Restore dependencies
+      run: dotnet restore Uwuify.DiscordBot.sln
+    - name: Build
+      run: dotnet build --no-restore Uwuify.DiscordBot.sln
+    - name: Test
+      run: dotnet test --no-build --verbosity normal Uwuify.DiscordBot.sln
+
   publish:
 
     runs-on: self-hosted
