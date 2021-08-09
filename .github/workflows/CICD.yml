@@ -1,6 +1,7 @@
 name: CI/CD
 
 on:
+  workflow-dispatch:
   push:
     branches: [ main ]
 
