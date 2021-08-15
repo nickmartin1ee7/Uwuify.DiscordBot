@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Uwuify.DiscordBot.WorkerService.Models;
@@ -48,6 +49,20 @@ namespace Uwuify.DiscordBot.WorkerService.Services
         {
             _client.Log += OnLogAsync;
             _client.Ready += OnReadyAsync;
+            _client.JoinedGuild += OnGuildJoinAsync;
+            _client.LeftGuild += OnGuildLeftAsync;
+        }
+
+        private Task OnGuildJoinAsync(SocketGuild arg)
+        {
+            _logger.LogInformation("Joined new guild: {guildName} ({guildId})", arg.Name, arg.Id);
+            return Task.CompletedTask;
+        }
+
+        private Task OnGuildLeftAsync(SocketGuild arg)
+        {
+            _logger.LogInformation("Left guild: {guildName} ({guildId})", arg.Name, arg.Id);
+            return Task.CompletedTask;
         }
 
         private Task OnLogAsync(LogMessage logMessage)
@@ -82,7 +97,13 @@ namespace Uwuify.DiscordBot.WorkerService.Services
 
         private Task OnReadyAsync()
         {
-            _logger.LogInformation("{botUser} is online for {guildCount} guilds.", _client.CurrentUser, _client.Guilds.Count);
+            var sb = new StringBuilder();
+            foreach (var guild in _client.Guilds)
+            {
+                sb.Append($"{guild.Name} ({guild.Id}); ");
+            }
+
+            _logger.LogInformation("{botUser} is online for {guildCount} guilds: {guilds}", _client.CurrentUser, _client.Guilds.Count, sb.ToString().Trim());
 
             return Task.CompletedTask;
         }

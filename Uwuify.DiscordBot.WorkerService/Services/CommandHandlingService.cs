@@ -13,6 +13,7 @@ namespace Uwuify.DiscordBot.WorkerService.Services
 {
     public class CommandHandlingService
     {
+        private const string UNSPECIFIED_COMMAND = "Unspecified Command";
         private readonly DiscordSocketClient _client;
         private readonly DiscordSettings _discordSettings;
         private readonly CommandService _commandService;
@@ -42,13 +43,31 @@ namespace Uwuify.DiscordBot.WorkerService.Services
 
             if (result.IsSuccess)
             {
-                _logger.LogInformation("{command} triggered by {user} successfully (#{channel} in {guild}).", command.IsSpecified ? command.Value.Name : "Command", context.Message.Author, context.Channel, context.Guild);
+                _logger.LogInformation("{command} triggered by {user} successfully #{channel} in {guild} ({guildId}). Message: {message}",
+                    command.IsSpecified
+                    ? command.Value.Name
+                    : UNSPECIFIED_COMMAND,
+                    context.Message.Author,
+                    context.Channel,
+                    context.Guild,
+                    context.Guild.Id,
+                    context.Message.Content);
                 return;
             }
 
-            _logger.LogError("{command} errored when run by {user} (#{channel} in {guild}). Error: {error}", command.IsSpecified ? command.Value.Name : "Command", context.Message.Author, context.Channel, context.Guild, result);
+            _logger.LogError("{command} errored when run by {user} #{channel} in {guild} ({guildId}). Error: {error}. Message: {message}",
+                command.IsSpecified
+                ? command.Value.Name
+                : UNSPECIFIED_COMMAND,
+                context.Message.Author,
+                context.Channel,
+                context.Guild,
+                context.Guild.Id,
+                result,
+                context.Message.Content);
 
-            await context.Channel.SendMessageAsync("Sorry, friend... That didn't work!".Uwuify());
+            if (command.IsSpecified)
+                await context.Channel.SendMessageAsync("Sorry, friend... That didn't work!".Uwuify());
         }
 
         private async Task OnMessageReceivedAsync(SocketMessage arg)
