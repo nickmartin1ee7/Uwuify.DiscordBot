@@ -43,7 +43,7 @@ namespace Uwuify.DiscordBot.WorkerService.Services
 
             if (result.IsSuccess)
             {
-                _logger.LogInformation("{command} triggered by {user} successfully #{channel} in {guild} ({guildId}). Message: {message}",
+                _logger.LogInformation("{command} triggered by {user} successfully #{channel} in {guild} ({guildId}) Message: {message}",
                     command.IsSpecified
                     ? command.Value.Name
                     : UNSPECIFIED_COMMAND,
@@ -55,7 +55,7 @@ namespace Uwuify.DiscordBot.WorkerService.Services
                 return;
             }
 
-            _logger.LogError("{command} errored when run by {user} #{channel} in {guild} ({guildId}). Error: {error}. Message: {message}",
+            _logger.LogError("{command} errored when run by {user} #{channel} in {guild} ({guildId}). Error: {error} Message: {message}",
                 command.IsSpecified
                 ? command.Value.Name
                 : UNSPECIFIED_COMMAND,
