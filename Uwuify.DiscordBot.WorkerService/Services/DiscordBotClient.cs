@@ -15,7 +15,10 @@ namespace Uwuify.DiscordBot.WorkerService.Services
         private readonly CommandHandlingService _commandHandlingService;
         private readonly DiscordSocketClient _client;
 
-        public DiscordBotClient(ILogger<DiscordBotClient> logger, DiscordSocketClient client, DiscordSettings discordSettings, CommandHandlingService commandHandlingService)
+        private SocketUser GetOwner() => _client.GetUser(_discordSettings.OwnerId);
+
+        public DiscordBotClient(ILogger<DiscordBotClient> logger, DiscordSocketClient client,
+            DiscordSettings discordSettings, CommandHandlingService commandHandlingService)
         {
             _logger = logger;
             _discordSettings = discordSettings;
@@ -53,16 +56,17 @@ namespace Uwuify.DiscordBot.WorkerService.Services
             _client.LeftGuild += OnGuildLeftAsync;
         }
 
-        private Task OnGuildJoinAsync(SocketGuild arg)
+        private async Task OnGuildJoinAsync(SocketGuild arg)
         {
             _logger.LogInformation("Joined new guild: {guildName} ({guildId})", arg.Name, arg.Id);
-            return Task.CompletedTask;
+            await _client.GetUser(_discordSettings.OwnerId)
+                .SendMessageAsync($"Joined new guild: {arg.Name} ({arg.Id})");
         }
 
-        private Task OnGuildLeftAsync(SocketGuild arg)
+        private async Task OnGuildLeftAsync(SocketGuild arg)
         {
             _logger.LogInformation("Left guild: {guildName} ({guildId})", arg.Name, arg.Id);
-            return Task.CompletedTask;
+            await GetOwner()?.SendMessageAsync($"Left guild: {arg.Name} ({arg.Id})");
         }
 
         private Task OnLogAsync(LogMessage logMessage)
@@ -95,7 +99,7 @@ namespace Uwuify.DiscordBot.WorkerService.Services
             return Task.CompletedTask;
         }
 
-        private Task OnReadyAsync()
+        private async Task OnReadyAsync()
         {
             var sb = new StringBuilder();
             foreach (var guild in _client.Guilds)
@@ -103,9 +107,12 @@ namespace Uwuify.DiscordBot.WorkerService.Services
                 sb.Append($"{guild.Name} ({guild.Id}); ");
             }
 
-            _logger.LogInformation("{botUser} is online for {guildCount} guilds: {guilds}", _client.CurrentUser, _client.Guilds.Count, sb.ToString().Trim());
+            var guilds = sb.ToString().Trim();
+            _logger.LogInformation("{botUser} is online for {guildCount} guilds: {guilds}", _client.CurrentUser,
+                _client.Guilds.Count, guilds);
 
-            return Task.CompletedTask;
+            await GetOwner()?.SendMessageAsync(
+                $"{_client.CurrentUser} is online for {_client.Guilds.Count} guilds: {guilds}");
         }
     }
 }

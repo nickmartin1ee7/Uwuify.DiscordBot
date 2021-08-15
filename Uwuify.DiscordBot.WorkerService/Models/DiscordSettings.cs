@@ -7,5 +7,6 @@ namespace Uwuify.DiscordBot.WorkerService.Models
         public string Token { get; set; }
         public string StatusMessage { get; set; }
         public IEnumerable<string> Prefixes { get; set; }
+        public ulong OwnerId { get; set; }
     }
 }
