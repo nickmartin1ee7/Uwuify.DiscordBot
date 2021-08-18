@@ -2,10 +2,12 @@
 using Discord.Commands;
 using System;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Uwuify.DiscordBot.WorkerService.Extensions;
+using Uwuify.DiscordBot.WorkerService.Models;
 using Uwuify.Humanizer;
 
 namespace Uwuify.DiscordBot.WorkerService.Modules
@@ -25,9 +27,9 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
             await Context.Message.ReplyAsync(embed: text
                 .ToDefaultEmbed(Context, "Echo"));
 
-        [Command("uwu")]
-        [Alias("uwuify", "owo")]
-        [Summary("Uwuify your message!")]
+        [Command("uwuify")]
+        [Alias("uwu", "owo")]
+        [Summary("Uwuify your message! Also, can Uwuify someone else by replying to them.")]
         public async Task UwuAsync([Remainder] string text)
         {
             // Reply
@@ -51,9 +53,9 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
             }
         }
 
-        [Command("uwu")]
-        [Alias("uwuify", "owo")]
-        [Summary("Uwuify someone else by replying to them!")]
+        [HiddenCommand]
+        [Command("uwuify")]
+        [Alias("uwu", "owo")]
         public async Task UwuAsync()
         {
             if (string.IsNullOrWhiteSpace(Context.Message.ReferencedMessage?.Content)) return;
@@ -63,13 +65,16 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
         }
 
         [Command("help")]
-        [Summary("It prints this, you big dummy!")]
+        [Summary("Print this, you big dummy!")]
         public async Task HelpAsync() =>
-            await Context.Message.ReplyAsync(embed: string.Join(Environment.NewLine, GetType()
+            await Context.Message.ReplyAsync(embed: (string.Join(Environment.NewLine, GetType()
                 .GetMethods()
+                .Where(m => m.GetCustomAttributes()
+                    .All(a => a is not HiddenCommandAttribute))
                 .Select(m =>
                 {
                     var attributes = m.GetCustomAttributes();
+
                     var sb = new StringBuilder();
 
                     foreach (var attribute in attributes)
@@ -78,15 +83,16 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
                         {
                             CommandAttribute attr => $"Command: **{attr.Text}**; ",
                             AliasAttribute attr => $"Aliases: **{string.Join(", ", attr.Aliases)}**; ",
-                            SummaryAttribute attr => $"Summary: {attr.Text}; ",
+                            SummaryAttribute attr => $"Summary: *{attr.Text}*{Environment.NewLine}; ",
                             _ => string.Empty
                         };
 
                         sb.Append(text);
                     }
-
+                    
                     var output = sb.ToString();
                     return output.Length > 0 ? output[..^2] : output;
-                })).ToDefaultEmbed(Context, "Help"));
+                })) + "Note: Aliases are the same thing as Commands, just a faster way to use them!")
+                .ToDefaultEmbed(Context, "Help"));
     }
 }

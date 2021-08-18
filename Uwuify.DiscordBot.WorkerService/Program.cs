@@ -12,6 +12,8 @@ namespace Uwuify.DiscordBot.WorkerService
 {
     public static class Program
     {
+        public static IServiceProvider Services { get; private set; }
+        
         public static void Main(string[] args)
         {
             var configuration = new ConfigurationBuilder()
@@ -29,6 +31,8 @@ namespace Uwuify.DiscordBot.WorkerService
 
             var host = CreateHostBuilder(configuration, args).Build();
 
+            Services = host.Services;
+            
             try
             {
                 host.Run();
@@ -53,6 +57,7 @@ namespace Uwuify.DiscordBot.WorkerService
                 {
                     services.AddSingleton<IConfiguration>(configuration);
                     services.AddSingleton<DiscordSettings>(configuration.GetSection(nameof(DiscordSettings)).Get<DiscordSettings>());
+                    services.AddSingleton<EvaluationService>();
                     services.AddSingleton<DiscordSocketClient>();
                     services.AddSingleton<CommandHandlingService>();
                     services.AddSingleton<CommandService>();
