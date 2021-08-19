@@ -65,9 +65,8 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
                 sb.Append($"{guild.PreferredCulture.EnglishName} culture");
                 sb.AppendLine(".");
             }
-
-            await Context.Message.ReplyAsync(embed: sb.ToString()
-                .ToDefaultEmbed(Context, "Status"));
+            
+            await Context.Message.ReplyAsync(sb.ToString());
         }
     }
 }
