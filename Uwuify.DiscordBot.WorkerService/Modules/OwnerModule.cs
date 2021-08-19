@@ -57,10 +57,9 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
 
             foreach (var guild in Context.Client.Guilds)
             {
-                sb.Append($"{guild.Name}: {guild.MemberCount} users, ");
+                sb.Append($"{guild.Name} ({guild.Id}): {guild.MemberCount} users, ");
                 sb.Append($"owned by {guild.Owner} ({guild.Owner?.Id.ToString() ?? "N/A"}), ");
                 sb.Append($"{guild.Users.Count(u => u.IsBot)} bots, ");
-                sb.Append($"{guild.Users.Count(u => u.GuildPermissions.Administrator)} admins, ");
                 sb.Append(guild.CurrentUser.GuildPermissions.Administrator ? "**BOT IS ADMIN**; " : string.Empty);
                 sb.Append($"{guild.PreferredCulture.EnglishName}");
                 sb.AppendLine(".");
