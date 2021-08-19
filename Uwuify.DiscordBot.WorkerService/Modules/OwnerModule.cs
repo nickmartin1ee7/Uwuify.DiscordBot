@@ -65,8 +65,32 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
                 sb.Append($"{guild.PreferredCulture.EnglishName} culture");
                 sb.AppendLine(".");
             }
+
+            var result = sb.ToString();
+            const int MAX_LEN = 2000;
+
+            if (result.Length > MAX_LEN)
+            {
+                int parts = (int)Math.Ceiling(result.Length / (double)MAX_LEN); // Amount of msgs needed
+                var messageParts = new string[parts];
+
+                int lastPos = 0;
+                for (int i = 0; i < parts; i++)
+                {
+                    var pos = lastPos + MAX_LEN;
+                    if (pos >= result.Length) pos = result.Length;
+                    messageParts[i] = result[lastPos..pos];
+                    lastPos = pos;
+                }
+
+                foreach (var part in messageParts)
+                {
+                    await Context.Message.ReplyAsync(part);
+                    await Task.Delay(800);
+                }
+            }
             
-            await Context.Message.ReplyAsync(sb.ToString());
+            await Context.Message.ReplyAsync(result);
         }
     }
 }
