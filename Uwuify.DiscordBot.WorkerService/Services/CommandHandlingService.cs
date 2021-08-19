@@ -35,7 +35,7 @@ namespace Uwuify.DiscordBot.WorkerService.Services
         public async Task InitializeAsync()
         {
             await _commandService.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
-            _logger.LogDebug("Loaded commands: {commands}", _commandService.Commands.Select(c => c.Name));
+            _logger.LogInformation("Loaded commands: {commands}", _commandService.Commands.Select(c => c.Name));
         }
 
         private async Task OnCommandExecutedAsync(Optional<CommandInfo> command, ICommandContext context, IResult result)
