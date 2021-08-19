@@ -26,8 +26,9 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
         {
             OwnerGuard.Validate(_ownerId, Context);
 
-            _logger.LogCritical("{user} ({userId}) called for a shutdown!", Context.Message.Author, Context.Message.Author.Id);
-            
+            _logger.LogCritical("{user} ({userId}) called for a shutdown!", Context.Message.Author,
+                Context.Message.Author.Id);
+
             Environment.Exit(Context.Message.Author.Id.GetHashCode());
         }
 
@@ -39,7 +40,7 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
 
             using (Context.Message.Channel.EnterTypingState())
             {
-                _logger.LogWarning("Admin is using Evaluate Command!");
+                _logger.LogInformation("Evaluate command used by owner.");
 
                 var script = input.Replace("```cs", string.Empty)
                     .Replace("```", string.Empty);
@@ -52,7 +53,7 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
             }
         }
 
-        [HiddenCommand("send")]
+        [HiddenCommand("send", RunMode = RunMode.Async)]
         public async Task SendAsync([Remainder] string input)
         {
             OwnerGuard.Validate(_ownerId, Context);
@@ -80,10 +81,31 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
             _ = await guild.DefaultChannel.SendMessageAsync(inputs[1]);
         }
 
+        [HiddenCommand("delete", RunMode = RunMode.Async)]
+        public async Task DeleteAsync([Remainder] string input)
+        {
+            OwnerGuard.Validate(_ownerId, Context);
+
+            var messageId = ulong.Parse(input);
+            await Context.Channel.DeleteMessageAsync(messageId);
+        }
+
+        [HiddenCommand("announcement", RunMode = RunMode.Async)]
+        [Alias("announce", "broadcast")]
+        public async Task BroadcastAsync([Remainder] string input)
+        {
+            OwnerGuard.Validate(_ownerId, Context);
+
+            Context.Client.Guilds.ForEach(async guild =>
+                await guild.DefaultChannel.SendMessageAsync(embed: input.ToDefaultEmbed(Context, "Announcement")));
+        }
+
         [HiddenCommand("status", RunMode = RunMode.Async)]
         public async Task StatusAsync()
         {
             OwnerGuard.Validate(_ownerId, Context);
+
+            _logger.LogInformation("Status command used by owner.");
 
             if (!Context.IsPrivate)
             {
@@ -92,11 +114,10 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
 
             var sb = new StringBuilder();
 
-            sb.AppendLine("**Guild Info**");
+            sb.AppendLine($"**Guild Info: {Context.Client.Guilds.Count}**");
 
             foreach (var guild in Context.Client.Guilds)
             {
-                await guild.DefaultChannel.SendMessageAsync("hi");
                 sb.Append($"{guild.Name} ({guild.Id}): {guild.MemberCount} users, ");
                 sb.Append($"owned by {guild.Owner} ({guild.Owner?.Id.ToString() ?? "N/A"}), ");
                 sb.Append($"{guild.Users.Count(u => u.IsBot)} bots, ");
