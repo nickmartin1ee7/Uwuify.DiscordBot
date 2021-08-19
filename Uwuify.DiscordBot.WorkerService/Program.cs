@@ -13,7 +13,7 @@ namespace Uwuify.DiscordBot.WorkerService
     public static class Program
     {
         public static IServiceProvider Services { get; private set; }
-        
+
         public static void Main(string[] args)
         {
             var configuration = new ConfigurationBuilder()
@@ -32,7 +32,7 @@ namespace Uwuify.DiscordBot.WorkerService
             var host = CreateHostBuilder(configuration, args).Build();
 
             Services = host.Services;
-            
+
             try
             {
                 host.Run();
@@ -40,7 +40,6 @@ namespace Uwuify.DiscordBot.WorkerService
             catch (Exception e)
             {
                 Log.Fatal(e, "Hosted service crashed!");
-
             }
             finally
             {
@@ -48,22 +47,25 @@ namespace Uwuify.DiscordBot.WorkerService
             }
         }
 
-        public static IHostBuilder CreateHostBuilder(IConfiguration configuration, string[] args)
-        {
-
-            return Host.CreateDefaultBuilder(args)
+        private static IHostBuilder CreateHostBuilder(IConfiguration configuration, string[] args) =>
+            Host.CreateDefaultBuilder(args)
                 .UseSerilog(Log.Logger)
-                .ConfigureServices((hostContext, services) =>
+                .ConfigureServices((_, services) =>
                 {
                     services.AddSingleton<IConfiguration>(configuration);
-                    services.AddSingleton<DiscordSettings>(configuration.GetSection(nameof(DiscordSettings)).Get<DiscordSettings>());
+                    services.AddSingleton<DiscordSettings>(configuration
+                        .GetSection(nameof(DiscordSettings))
+                        .Get<DiscordSettings>());
                     services.AddSingleton<EvaluationService>();
-                    services.AddSingleton<DiscordSocketClient>();
+                    services.AddSingleton<DiscordSocketClient>(new DiscordSocketClient(
+                        new DiscordSocketConfig
+                        {
+                            AlwaysDownloadUsers = true
+                        }));
                     services.AddSingleton<CommandHandlingService>();
                     services.AddSingleton<CommandService>();
                     services.AddSingleton<DiscordBotClient>();
                     services.AddHostedService<Worker>();
                 });
-        }
     }
 }

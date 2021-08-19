@@ -1,6 +1,6 @@
 ﻿using Discord.Commands;
 
-namespace Uwuify.DiscordBot.WorkerService.Modules
+namespace Uwuify.DiscordBot.WorkerService.Models
 {
     public class Globals
     {
