@@ -59,14 +59,15 @@ namespace Uwuify.DiscordBot.WorkerService.Services
         private async Task OnGuildJoinAsync(SocketGuild arg)
         {
             _logger.LogInformation("Joined new guild: {guildName} ({guildId})", arg.Name, arg.Id);
-            await _client.GetUser(_discordSettings.OwnerId)
+            await _client.GetUser(_discordSettings.OwnerId)?
                 .SendMessageAsync($"Joined new guild: {arg.Name} ({arg.Id})");
         }
 
         private async Task OnGuildLeftAsync(SocketGuild arg)
         {
             _logger.LogInformation("Left guild: {guildName} ({guildId})", arg.Name, arg.Id);
-            await GetOwner()?.SendMessageAsync($"Left guild: {arg.Name} ({arg.Id})");
+            await GetOwner()?
+                .SendMessageAsync($"Left guild: {arg.Name} ({arg.Id})");
         }
 
         private Task OnLogAsync(LogMessage logMessage)
@@ -111,8 +112,8 @@ namespace Uwuify.DiscordBot.WorkerService.Services
             _logger.LogInformation("{botUser} is online for {guildCount} guilds: {guilds}", _client.CurrentUser,
                 _client.Guilds.Count, guilds);
 
-            await GetOwner()?.SendMessageAsync(
-                $"{_client.CurrentUser} is online for {_client.Guilds.Count} guilds: {guilds}");
+            await GetOwner()?
+                .SendMessageAsync($"{_client.CurrentUser} is online for {_client.Guilds.Count} guilds: {guilds}");
         }
     }
 }
