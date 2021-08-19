@@ -21,6 +21,16 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
         private readonly EvaluationService _evaluationService = Program.Services.GetService<EvaluationService>();
         private readonly ulong _ownerId = Program.Services.GetService<DiscordSettings>().OwnerId;
 
+        [HiddenCommand("shutdown")]
+        public async Task ShutdownAsync()
+        {
+            OwnerGuard.Validate(_ownerId, Context);
+
+            _logger.LogCritical("{user} ({userId}) called for a shutdown!", Context.Message.Author, Context.Message.Author.Id);
+            
+            Environment.Exit(Context.Message.Author.Id.GetHashCode());
+        }
+
         [HiddenCommand("eval", RunMode = RunMode.Async)]
         [Alias("evaluate", "e")]
         public async Task EvalAsync([Remainder] string input)
@@ -118,8 +128,10 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
                     await Task.Delay(800);
                 }
             }
-
-            await Context.Message.ReplyAsync(result);
+            else
+            {
+                await Context.Message.ReplyAsync(result);
+            }
         }
     }
 }
