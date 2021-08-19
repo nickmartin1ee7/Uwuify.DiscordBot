@@ -2,7 +2,6 @@
 using Discord.Commands;
 using System;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -38,7 +37,7 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
                 var refMsg = Context.Message.ReferencedMessage;
                 var sb = new StringBuilder();
 
-                sb.AppendLine($"> {refMsg.Content.Uwuify()}");
+                sb.AppendLine(refMsg.Content.Uwuify().ToDiscordQuote());
                 sb.Append(text.Uwuify());
 
                 await Context.Message.ReferencedMessage
@@ -60,7 +59,7 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
         {
             if (string.IsNullOrWhiteSpace(Context.Message.ReferencedMessage?.Content)) return;
             var refMsg = Context.Message.ReferencedMessage;
-            await Context.Message.ReferencedMessage.ReplyAsync(embed: $"> {refMsg.Content.Uwuify()}"
+            await Context.Message.ReferencedMessage.ReplyAsync(embed: refMsg.Content.Uwuify().ToDiscordQuote()
                 .ToDefaultEmbed(Context, "Uwuify"));
         }
 
@@ -68,31 +67,31 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
         [Summary("Print this, you big dummy!")]
         public async Task HelpAsync() =>
             await Context.Message.ReplyAsync(embed: (string.Join(Environment.NewLine, GetType()
-                .GetMethods()
-                .Where(m => m.GetCustomAttributes()
-                    .All(a => a is not HiddenCommandAttribute))
-                .Select(m =>
-                {
-                    var attributes = m.GetCustomAttributes();
-
-                    var sb = new StringBuilder();
-
-                    foreach (var attribute in attributes)
+                    .GetMethods()
+                    .Where(m => m.GetCustomAttributes()
+                        .All(a => a is not HiddenCommandAttribute))
+                    .Select(m =>
                     {
-                        var text = attribute switch
-                        {
-                            CommandAttribute attr => $"Command: **{attr.Text}**; ",
-                            AliasAttribute attr => $"Aliases: **{string.Join(", ", attr.Aliases)}**; ",
-                            SummaryAttribute attr => $"Summary: *{attr.Text}*{Environment.NewLine}; ",
-                            _ => string.Empty
-                        };
+                        var attributes = m.GetCustomAttributes();
 
-                        sb.Append(text);
-                    }
-                    
-                    var output = sb.ToString();
-                    return output.Length > 0 ? output[..^2] : output;
-                })) + "Note: Aliases are the same thing as Commands, just a faster way to use them!")
+                        var sb = new StringBuilder();
+
+                        foreach (var attribute in attributes)
+                        {
+                            var text = attribute switch
+                            {
+                                CommandAttribute attr => $"Command: **{attr.Text}**; ",
+                                AliasAttribute attr => $"Aliases: **{string.Join(", ", attr.Aliases)}**; ",
+                                SummaryAttribute attr => $"Summary: *{attr.Text}*{Environment.NewLine}; ",
+                                _ => string.Empty
+                            };
+
+                            sb.Append(text);
+                        }
+
+                        var output = sb.ToString();
+                        return output.Length > 0 ? output[..^2] : output;
+                    })) + "Note: Aliases are the same thing as Commands, just a faster way to use them!")
                 .ToDefaultEmbed(Context, "Help"));
     }
 }
