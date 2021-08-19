@@ -45,15 +45,18 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
         [HiddenCommand("send")]
         public async Task SendAsync([Remainder] string input)
         {
+            OwnerGuard.Validate(_ownerId, Context);
+
             const char DELIM = '|';
             var inputs = input.Split(DELIM);
-            
+
             if (inputs.Length < 2)
             {
-                await Context.Message.ReplyAsync($"Invalid usage. Guild ID or Name and the message (delimited by {DELIM}).");
+                await Context.Message.ReplyAsync(
+                    $"Invalid usage. Guild ID or Name and the message (delimited by {DELIM}).");
                 return;
             }
-            
+
             SocketGuild guild = ulong.TryParse(inputs[0], out var guildId)
                 ? Context.Client.Guilds.FirstOrDefault(g => g.Id == guildId)
                 : Context.Client.Guilds.FirstOrDefault(g => g.Name.Contains(inputs[0]));
@@ -63,10 +66,10 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
                 await Context.Message.ReplyAsync($"Guild {inputs[0]} could not be found.");
                 return;
             }
-            
+
             _ = await guild.DefaultChannel.SendMessageAsync(inputs[1]);
         }
-        
+
         [HiddenCommand("status", RunMode = RunMode.Async)]
         public async Task StatusAsync()
         {
@@ -115,7 +118,7 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
                     await Task.Delay(800);
                 }
             }
-            
+
             await Context.Message.ReplyAsync(result);
         }
     }
