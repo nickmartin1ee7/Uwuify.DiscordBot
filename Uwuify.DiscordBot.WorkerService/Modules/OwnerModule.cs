@@ -46,7 +46,10 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
         {
             OwnerGuard.Validate(_ownerId, Context);
 
-            if (!Context.IsPrivate) return;
+            if (!Context.IsPrivate)
+            {
+                _logger.LogWarning("Status command used outside private chat.");
+            }
 
             var sb = new StringBuilder();
 
