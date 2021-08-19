@@ -1,9 +1,9 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Uwuify.DiscordBot.WorkerService.Extensions;
 using Uwuify.DiscordBot.WorkerService.Models;
 
 namespace Uwuify.DiscordBot.WorkerService.Services
@@ -96,13 +96,8 @@ namespace Uwuify.DiscordBot.WorkerService.Services
 
         private async Task OnReadyAsync()
         {
-            var sb = new StringBuilder();
-            foreach (var guild in _client.Guilds)
-            {
-                sb.Append($"{guild.Name} ({guild.Id}); ");
-            }
-
-            var guilds = sb.ToString().Trim();
+            var guilds = _client.Guilds.ToSingleString();
+            
             _logger.LogInformation("{botUser} is online for {guildCount} guilds: {guilds}", _client.CurrentUser,
                 _client.Guilds.Count, guilds);
         }
