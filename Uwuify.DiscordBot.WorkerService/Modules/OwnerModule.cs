@@ -78,6 +78,8 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
                 return;
             }
 
+            _logger.LogInformation("Sending message to guild {guild}: {message}", guild, input);
+
             _ = await guild.DefaultChannel.SendMessageAsync(inputs[1]);
         }
 
@@ -87,6 +89,9 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
             OwnerGuard.Validate(_ownerId, Context);
 
             var messageId = ulong.Parse(input);
+
+            _logger.LogInformation("Deleting message {messageId}", messageId);
+
             await Context.Channel.DeleteMessageAsync(messageId);
         }
 
@@ -95,6 +100,9 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
         public async Task BroadcastAsync([Remainder] string input)
         {
             OwnerGuard.Validate(_ownerId, Context);
+
+            _logger.LogInformation("Announcement being sent to {guildCount} guilds: {msg}", Context.Client.Guilds.Count,
+                input);
 
             Context.Client.Guilds.ForEach(async guild =>
                 await guild.DefaultChannel.SendMessageAsync(embed: input.ToDefaultEmbed(Context, "Announcement")));
