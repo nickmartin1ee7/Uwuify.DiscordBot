@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Uwuify.DiscordBot.WorkerService.Extensions;
@@ -41,6 +42,31 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
             }
         }
 
+        [HiddenCommand("send")]
+        public async Task SendAsync([Remainder] string input)
+        {
+            const char DELIM = '|';
+            var inputs = input.Split(DELIM);
+            
+            if (inputs.Length < 2)
+            {
+                await Context.Message.ReplyAsync($"Invalid usage. Guild ID or Name and the message (delimited by {DELIM}).");
+                return;
+            }
+            
+            SocketGuild guild = ulong.TryParse(inputs[0], out var guildId)
+                ? Context.Client.Guilds.FirstOrDefault(g => g.Id == guildId)
+                : Context.Client.Guilds.FirstOrDefault(g => g.Name.Contains(inputs[0]));
+
+            if (guild is null)
+            {
+                await Context.Message.ReplyAsync($"Guild {inputs[0]} could not be found.");
+                return;
+            }
+            
+            _ = await guild.DefaultChannel.SendMessageAsync(inputs[1]);
+        }
+        
         [HiddenCommand("status", RunMode = RunMode.Async)]
         public async Task StatusAsync()
         {
@@ -57,6 +83,7 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
 
             foreach (var guild in Context.Client.Guilds)
             {
+                await guild.DefaultChannel.SendMessageAsync("hi");
                 sb.Append($"{guild.Name} ({guild.Id}): {guild.MemberCount} users, ");
                 sb.Append($"owned by {guild.Owner} ({guild.Owner?.Id.ToString() ?? "N/A"}), ");
                 sb.Append($"{guild.Users.Count(u => u.IsBot)} bots, ");
