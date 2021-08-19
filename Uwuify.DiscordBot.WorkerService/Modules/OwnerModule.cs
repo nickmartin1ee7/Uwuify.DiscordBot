@@ -97,7 +97,7 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
 
         [HiddenCommand("announcement", RunMode = RunMode.Async)]
         [Alias("announce", "broadcast")]
-        public async Task BroadcastAsync([Remainder] string input)
+        public async Task AnnouncementAsync([Remainder] string input)
         {
             OwnerGuard.Validate(_ownerId, Context);
 
