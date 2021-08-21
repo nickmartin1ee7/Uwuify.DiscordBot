@@ -52,6 +52,10 @@ namespace Uwuify.DiscordBot.WorkerService.Services
             _client.Ready += OnReadyAsync;
             _client.JoinedGuild += OnGuildJoinAsync;
             _client.LeftGuild += OnGuildLeftAsync;
+
+            // Ignore invitation events
+            _client.InviteCreated += _ => null;
+            _client.InviteDeleted += (_, _) => null;
         }
 
         private async Task OnGuildJoinAsync(SocketGuild arg)
