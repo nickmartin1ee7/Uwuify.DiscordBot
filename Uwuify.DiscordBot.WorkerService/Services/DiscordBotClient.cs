@@ -57,11 +57,18 @@ namespace Uwuify.DiscordBot.WorkerService.Services
         private async Task OnGuildJoinAsync(SocketGuild arg)
         {
             _logger.LogInformation("Joined new guild: {guildName} ({guildId})", arg.Name, arg.Id);
+            LogGuildCount();
         }
 
         private async Task OnGuildLeftAsync(SocketGuild arg)
         {
             _logger.LogInformation("Left guild: {guildName} ({guildId})", arg.Name, arg.Id);
+            LogGuildCount();
+        }
+
+        private void LogGuildCount()
+        {
+            _logger.LogInformation("Guild count: {count}", _client.Guilds.Count);
         }
 
         private Task OnLogAsync(LogMessage logMessage)
@@ -75,11 +82,12 @@ namespace Uwuify.DiscordBot.WorkerService.Services
                     _logger.LogError(logMessage.Message, logMessage);
                     break;
                 case LogSeverity.Warning:
-                    if (logMessage.ShouldIgnoreWarningLogMessage())
+                    if (logMessage.ShouldWarningLogMessage())
                         _logger.LogWarning(logMessage.Message, logMessage);
                     break;
                 case LogSeverity.Info:
-                    _logger.LogInformation(logMessage.Message, logMessage);
+                    if (logMessage.ShouldInfoLogMessage())
+                        _logger.LogInformation(logMessage.Message, logMessage);
                     break;
                 case LogSeverity.Verbose:
                     _logger.LogTrace(logMessage.Message, logMessage);
@@ -98,7 +106,7 @@ namespace Uwuify.DiscordBot.WorkerService.Services
         private async Task OnReadyAsync()
         {
             var guilds = _client.Guilds.ToSingleString();
-            
+
             _logger.LogInformation("{botUser} is online for {guildCount} guilds: {guilds}", _client.CurrentUser,
                 _client.Guilds.Count, guilds);
         }

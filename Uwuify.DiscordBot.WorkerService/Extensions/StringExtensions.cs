@@ -30,9 +30,14 @@ namespace Uwuify.DiscordBot.WorkerService.Extensions
             return sb.ToString();
         }
 
-        public static bool ShouldIgnoreWarningLogMessage(this LogMessage logMessage) =>
+        public static bool ShouldWarningLogMessage(this LogMessage logMessage) =>
             !string.IsNullOrEmpty(logMessage.Message)
-            && !logMessage.Message.Contains("[null]")
-            && !logMessage.Message.Contains("Unknown Dispatch");
+            && !logMessage.Message.Contains("[null]") // Null warning messages from Discord
+            && !logMessage.Message.Contains("Unknown Dispatch"); // Unregistered event handlers for client
+
+        public static bool ShouldInfoLogMessage(this LogMessage logMessage) =>
+            !string.IsNullOrEmpty(logMessage.Message)
+            && !logMessage.Message.StartsWith("Left ") // Leaving a guild is custom
+            && !logMessage.Message.StartsWith("Joined "); // Joining a guild is custom
     }
 }
