@@ -13,7 +13,7 @@ services:
         - seq
   seq:
     container_name: seq
-    image: datalust/seq:latest
+    image: datalust/seq:2021.3.6410-pre
     ports:
         - 8081:80
     environment:
