@@ -40,8 +40,6 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
 
             using (Context.Message.Channel.EnterTypingState())
             {
-                _logger.LogInformation("Evaluate command used by owner.");
-
                 var script = input.Replace("```cs", string.Empty)
                     .Replace("```", string.Empty);
 
@@ -112,8 +110,6 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
         public async Task StatusAsync()
         {
             OwnerGuard.Validate(_ownerId, Context);
-
-            _logger.LogInformation("Status command used by owner.");
 
             if (!Context.IsPrivate)
             {
