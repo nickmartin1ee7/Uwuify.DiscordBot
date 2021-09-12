@@ -29,5 +29,10 @@ namespace Uwuify.DiscordBot.WorkerService.Extensions
             lines.ForEach(l => sb.AppendLine("> " + l));
             return sb.ToString();
         }
+
+        public static bool ShouldIgnoreWarningLogMessage(this LogMessage logMessage) =>
+            !string.IsNullOrEmpty(logMessage.Message)
+            && !logMessage.Message.Contains("[null]")
+            && !logMessage.Message.Contains("Unknown Dispatch");
     }
 }

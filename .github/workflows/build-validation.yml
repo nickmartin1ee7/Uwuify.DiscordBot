@@ -1,10 +1,10 @@
 name: Build Validation
 
 on:
-  workflow_dispatch: 
+  workflow_dispatch:
   pull_request:
     branches: [ main ]
-    
+
 jobs:
   build:
 

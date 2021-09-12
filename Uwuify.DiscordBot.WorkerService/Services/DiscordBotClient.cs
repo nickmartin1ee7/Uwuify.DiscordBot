@@ -52,10 +52,6 @@ namespace Uwuify.DiscordBot.WorkerService.Services
             _client.Ready += OnReadyAsync;
             _client.JoinedGuild += OnGuildJoinAsync;
             _client.LeftGuild += OnGuildLeftAsync;
-
-            // Ignore invitation events
-            _client.InviteCreated += _ => null;
-            _client.InviteDeleted += (_, _) => null;
         }
 
         private async Task OnGuildJoinAsync(SocketGuild arg)
@@ -79,7 +75,8 @@ namespace Uwuify.DiscordBot.WorkerService.Services
                     _logger.LogError(logMessage.Message, logMessage);
                     break;
                 case LogSeverity.Warning:
-                    _logger.LogWarning(logMessage.Message, logMessage);
+                    if (logMessage.ShouldIgnoreWarningLogMessage())
+                        _logger.LogWarning(logMessage.Message, logMessage);
                     break;
                 case LogSeverity.Info:
                     _logger.LogInformation(logMessage.Message, logMessage);

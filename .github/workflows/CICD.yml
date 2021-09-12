@@ -9,53 +9,47 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    
+
     - uses: actions/checkout@v2
-    
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.x
-        
+
     - name: Restore dependencies
       run: dotnet restore Uwuify.DiscordBot.sln
-      
+
     - name: Build
       run: dotnet build --no-restore Uwuify.DiscordBot.sln
-      
+
     - name: Test
       run: dotnet test --no-build --verbosity normal Uwuify.DiscordBot.sln
 
   publish:
     runs-on: self-hosted
     needs: build
-    
+
     steps:
     - uses: actions/checkout@v2
-    
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.x
-        
-    - name: Restore dependencies
-      run: dotnet restore Uwuify.DiscordBot.sln
-      
+
     - name: Stop Discord Bot Service
       env:
         SUDOER: ${{ secrets.SUDO_CD }}
-      run: 
+      run:
         echo "$SUDOER" | xargs sudo -S service uwuify-discord-bot stop
-        
-    - name: Publish
-      run: dotnet publish Uwuify.DiscordBot.sln --no-restore -c Release -o $HOME/Uwuify
-      
+
     - name: Start Discord Bot service
       env:
         SUDOER: ${{ secrets.SUDO_CD }}
       run:
         echo "$SUDOER" | xargs sudo -S service uwuify-discord-bot restart
-        
+
     - name: Clean Bash History
       continue-on-error: true
       run:
