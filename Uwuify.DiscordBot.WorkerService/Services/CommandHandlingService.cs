@@ -49,8 +49,8 @@ namespace Uwuify.DiscordBot.WorkerService.Services
                     : UNSPECIFIED_COMMAND,
                     context.Message.Author,
                     context.Channel,
-                    context.Guild,
-                    context.Guild.Id,
+                    context.Guild is null ? "DM" : context.Guild,
+                    context.Guild?.Id,
                     context.Message.Content);
                 return;
             }
@@ -61,8 +61,8 @@ namespace Uwuify.DiscordBot.WorkerService.Services
                 : UNSPECIFIED_COMMAND,
                 context.Message.Author,
                 context.Channel,
-                context.Guild,
-                context.Guild.Id,
+                context.Guild is null ? "DM" : context.Guild,
+                context.Guild?.Id,
                 result,
                 context.Message.Content);
 
@@ -86,7 +86,7 @@ namespace Uwuify.DiscordBot.WorkerService.Services
             if (!valid) return;
 
             var context = new SocketCommandContext(_client, socketMessage);
-            
+
             await _commandService.ExecuteAsync(context, argPos, _services);
         }
     }
