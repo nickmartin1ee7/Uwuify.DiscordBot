@@ -18,3 +18,8 @@ services:
         - 8081:80
     environment:
         - ACCEPT_EULA=Y
+    volumes:
+        - uwuify-seqdata:/data
+
+volumes:
+  uwuify-seqdata:
