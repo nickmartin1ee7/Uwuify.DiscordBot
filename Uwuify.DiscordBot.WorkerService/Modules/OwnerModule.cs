@@ -26,7 +26,7 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
         {
             OwnerGuard.Validate(_ownerId, Context);
 
-            _logger.LogCritical("{user} ({userId}) called for a shutdown!", Context.Message.Author,
+            _logger.LogWarning("{user} ({userId}) called for a shutdown", Context.Message.Author,
                 Context.Message.Author.Id);
 
             Environment.Exit(Context.Message.Author.Id.GetHashCode());
@@ -112,9 +112,7 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
             OwnerGuard.Validate(_ownerId, Context);
 
             if (!Context.IsPrivate)
-            {
-                _logger.LogWarning("Status command used outside private chat.");
-            }
+                return;
 
             var sb = new StringBuilder();
 

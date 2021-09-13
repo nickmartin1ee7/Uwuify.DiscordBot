@@ -55,7 +55,10 @@ namespace Uwuify.DiscordBot.WorkerService.Services
                 return;
             }
 
-            _logger.LogError("{command} errored when run by {user} #{channel} in {guild} ({guildId}). Error: {error} Message: {message}",
+            if (!command.IsSpecified)
+                return;
+
+                _logger.LogWarning("{command} errored when run by {user} #{channel} in {guild} ({guildId}). Error: {error} Message: {message}",
                 command.IsSpecified
                 ? command.Value.Name
                 : UNSPECIFIED_COMMAND,
@@ -65,9 +68,8 @@ namespace Uwuify.DiscordBot.WorkerService.Services
                 context.Guild?.Id,
                 result,
                 context.Message.Content);
-
-            if (command.IsSpecified)
-                await context.Channel.SendMessageAsync("Sorry, friend... That didn't work!".Uwuify());
+            
+            await context.Channel.SendMessageAsync("Sorry, friend... That didn't work!".Uwuify());
         }
 
         private async Task OnMessageReceivedAsync(SocketMessage arg)
