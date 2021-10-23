@@ -62,6 +62,15 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
                 .ToDefaultEmbed(Context, "Uwuify"));
         }
 
+        [Command("feedback", RunMode = RunMode.Async)]
+        [Summary("Leave feedback for the developers on how you'd like this bot to work.")]
+        public async Task FeedbackAsync([Remainder] string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return;
+
+            _logger.LogInformation("New feedback left by {userName. Feedback: {feedbackText}}", Context.Message.Author.ToString(), text.Trim());
+        }
+
         [Command("help", RunMode = RunMode.Async)]
         [Summary("Print this, you big dummy!")]
         public async Task HelpAsync() =>
