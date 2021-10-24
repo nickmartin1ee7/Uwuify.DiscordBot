@@ -5,14 +5,18 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Uwuify.DiscordBot.WorkerService.Extensions;
 using Uwuify.DiscordBot.WorkerService.Models;
 using Uwuify.Humanizer;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Uwuify.DiscordBot.WorkerService.Modules
 {
     public class PublicModule : ModuleBase<SocketCommandContext>
     {
+        private readonly ILogger<PublicModule> _logger = Program.Services.GetService<ILogger<PublicModule>>();
+
         [Command("ping", RunMode = RunMode.Async)]
         [Alias("latency")]
         [Summary("Returns the latency to Discord.")]
@@ -66,9 +70,12 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
         [Summary("Leave feedback for the developers on how you'd like this bot to work.")]
         public async Task FeedbackAsync([Remainder] string text)
         {
-            if (string.IsNullOrWhiteSpace(text)) return;
+            _logger.LogInformation("New feedback left by {userName}. Feedback: {feedbackText}",
+                Context.Message.Author.ToString(), text.Trim());
 
-            _logger.LogInformation("New feedback left by {userName. Feedback: {feedbackText}}", Context.Message.Author.ToString(), text.Trim());
+            await Context.Message.ReplyAsync(
+                embed: "Thank you for your feedback! Your comments help the developers improve this bot."
+                    .ToDefaultEmbed(Context, "Feedback Submitted"));
         }
 
         [Command("help", RunMode = RunMode.Async)]
