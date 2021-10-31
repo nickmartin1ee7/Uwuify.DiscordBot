@@ -118,7 +118,7 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
 
             sb.AppendLine($"**Guild Info: {Context.Client.Guilds.Count}**");
 
-            var sortedGuilds = Context.Client.Guilds.OrderBy(x => x.Users.Count);
+            var sortedGuilds = Context.Client.Guilds.OrderByDescending(g => g.MemberCount);
 
             foreach (var guild in sortedGuilds)
             {
