@@ -118,7 +118,9 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
 
             sb.AppendLine($"**Guild Info: {Context.Client.Guilds.Count}**");
 
-            foreach (var guild in Context.Client.Guilds)
+            var sortedGuilds = Context.Client.Guilds.OrderBy(x => x.Users.Count);
+
+            foreach (var guild in sortedGuilds)
             {
                 sb.Append($"{guild.Name} ({guild.Id}): {guild.MemberCount} users, ");
                 sb.Append($"owned by {guild.Owner} ({guild.Owner?.Id.ToString() ?? "N/A"}), ");
