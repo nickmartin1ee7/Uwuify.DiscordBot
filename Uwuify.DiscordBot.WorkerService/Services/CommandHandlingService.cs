@@ -20,7 +20,11 @@ namespace Uwuify.DiscordBot.WorkerService.Services
         private readonly IServiceProvider _services;
         private readonly ILogger<CommandHandlingService> _logger;
 
-        public CommandHandlingService(IServiceProvider services, ILogger<CommandHandlingService> logger, DiscordSocketClient client, DiscordSettings discordSettings, CommandService commandService)
+        public CommandHandlingService(IServiceProvider services,
+            ILogger<CommandHandlingService> logger,
+            DiscordSocketClient client,
+            DiscordSettings discordSettings,
+            CommandService commandService)
         {
             _client = client;
             _discordSettings = discordSettings;

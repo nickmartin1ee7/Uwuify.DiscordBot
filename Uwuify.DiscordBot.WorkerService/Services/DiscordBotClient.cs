@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Uwuify.DiscordBot.WorkerService.Extensions;
@@ -14,26 +15,36 @@ namespace Uwuify.DiscordBot.WorkerService.Services
         private readonly DiscordSettings _discordSettings;
         private readonly CommandHandlingService _commandHandlingService;
         private readonly DiscordSocketClient _client;
+        private readonly System.Timers.Timer _statusTimer;
 
-        public DiscordBotClient(ILogger<DiscordBotClient> logger, DiscordSocketClient client,
-            DiscordSettings discordSettings, CommandHandlingService commandHandlingService)
+        public DiscordBotClient(ILogger<DiscordBotClient> logger,
+            DiscordSocketClient client,
+            DiscordSettings discordSettings,
+            CommandHandlingService commandHandlingService)
         {
             _logger = logger;
             _discordSettings = discordSettings;
             _commandHandlingService = commandHandlingService;
             _client = client;
+
+            _statusTimer = new System.Timers.Timer(TimeSpan.FromSeconds(60).TotalMilliseconds);
+            _statusTimer.Elapsed += async (s, e) =>
+            {
+                await _client.SetGameAsync(_discordSettings.StatusMessage, type: ActivityType.Playing);
+            };
         }
 
         public async Task Run(CancellationToken stoppingToken)
         {
             RegisterEventHandlers();
             await StartClientAsync();
-            await UpdateActivityAsync();
+            await SetInitialActivityAsync();
+            _statusTimer.Start();
 
             await Task.Delay(Timeout.Infinite, stoppingToken);
         }
 
-        private async Task UpdateActivityAsync()
+        private async Task SetInitialActivityAsync()
         {
             await _client.SetGameAsync(_discordSettings.StatusMessage, type: ActivityType.Playing);
             _logger.LogInformation("Game Status set to {msg}", _discordSettings.StatusMessage);
