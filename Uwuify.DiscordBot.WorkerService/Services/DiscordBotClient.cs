@@ -73,6 +73,8 @@ namespace Uwuify.DiscordBot.WorkerService.Services
 
         private async Task OnGuildLeftAsync(SocketGuild arg)
         {
+            if (arg.Name is null) return; // False positives spamming logs.
+            
             _logger.LogInformation("Left guild: {guildName} ({guildId})", arg.Name, arg.Id);
             LogGuildCount();
         }

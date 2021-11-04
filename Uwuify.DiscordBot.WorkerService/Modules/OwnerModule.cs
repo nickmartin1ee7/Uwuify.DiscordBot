@@ -16,7 +16,6 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
 {
     public class OwnerModule : ModuleBase<SocketCommandContext>
     {
-        // Can't DI since Discord library uses reflection
         private readonly ILogger<OwnerModule> _logger = Program.Services.GetService<ILogger<OwnerModule>>();
         private readonly EvaluationService _evaluationService = Program.Services.GetService<EvaluationService>();
         private readonly ulong _ownerId = Program.Services.GetService<DiscordSettings>().OwnerId;
@@ -122,6 +121,7 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
 
             foreach (var guild in sortedGuilds)
             {
+                await guild.DownloadUsersAsync();
                 sb.Append($"{guild.Name} ({guild.Id}): {guild.MemberCount} users, ");
                 sb.Append($"owned by {guild.Owner} ({guild.Owner?.Id.ToString() ?? "N/A"}), ");
                 sb.Append($"{guild.Users.Count(u => u.IsBot)} bots, ");
