@@ -60,7 +60,7 @@ namespace Uwuify.DiscordBot.WorkerService
                     services.AddSingleton<DiscordSocketClient>(new DiscordSocketClient(
                         new DiscordSocketConfig
                         {
-                            // Placeholder
+                            ExclusiveBulkDelete = true
                         }));
                     services.AddSingleton<CommandHandlingService>();
                     services.AddSingleton<CommandService>();
