@@ -30,39 +30,52 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
             await Context.Message.ReplyAsync(embed: text
                 .ToDefaultEmbed(Context, "Echo"));
 
+        // Uwuify your message, and optionally someone else's message
         [Command("uwuify", RunMode = RunMode.Async)]
         [Alias("uwu", "owo")]
         [Summary("Uwuify your message! Also, can Uwuify someone else by replying to them.")]
         public async Task UwuAsync([Remainder] string text)
         {
             // Reply
-            if (!string.IsNullOrWhiteSpace(Context.Message.ReferencedMessage?.Content))
+            var refMsg = Context.Message.ReferencedMessage;
+            if (!string.IsNullOrWhiteSpace(refMsg?.Content))
             {
-                var refMsg = Context.Message.ReferencedMessage;
                 var sb = new StringBuilder();
 
-                sb.AppendLine(refMsg.Content.Uwuify().ToDiscordQuote());
-                sb.Append(text.Uwuify());
+                var uwuifiedRefMsg = refMsg.Content.Uwuify();
+                var uwuifiedText = text.Uwuify();
 
+                sb.AppendLine(uwuifiedRefMsg.ToDiscordQuote());
+                sb.Append(uwuifiedText);
+
+                var outputMsg = sb.ToString();
+                
+                _logger.LogDebug("{commandName} result: {msg}", nameof(UwuAsync), outputMsg);
+                
                 await Context.Message.ReferencedMessage
-                    .ReplyAsync(embed: sb.ToString()
+                    .ReplyAsync(embed: outputMsg
                         .ToDefaultEmbed(Context, "Uwuify"));
             }
             // Normal invocation
             else
             {
-                await Context.Message.ReplyAsync(embed: text.Uwuify()
+                var outputMsg = text.Uwuify();
+                _logger.LogDebug("{commandName} result: {msg}", nameof(UwuAsync), outputMsg);
+                await Context.Message.ReplyAsync(embed: outputMsg
                     .ToDefaultEmbed(Context, "Uwuify"));
             }
         }
 
+        // Uwuify someone else's message without your content
         [HiddenCommand("uwuify", RunMode = RunMode.Async)]
         [Alias("uwu", "owo")]
         public async Task UwuAsync()
         {
             if (string.IsNullOrWhiteSpace(Context.Message.ReferencedMessage?.Content)) return;
             var refMsg = Context.Message.ReferencedMessage;
-            await Context.Message.ReferencedMessage.ReplyAsync(embed: refMsg.Content.Uwuify().ToDiscordQuote()
+            var outputMsg = refMsg.Content.Uwuify().ToDiscordQuote();
+            _logger.LogDebug("{commandName} result: {msg}", nameof(UwuAsync), outputMsg);
+            await Context.Message.ReferencedMessage.ReplyAsync(embed: outputMsg
                 .ToDefaultEmbed(Context, "Uwuify"));
         }
 
