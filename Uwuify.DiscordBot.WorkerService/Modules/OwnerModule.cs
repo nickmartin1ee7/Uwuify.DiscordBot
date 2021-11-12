@@ -121,7 +121,6 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
 
             foreach (var guild in sortedGuilds)
             {
-                await guild.DownloadUsersAsync();
                 sb.Append($"{guild.Name} ({guild.Id}): {guild.MemberCount} users, ");
                 sb.Append($"owned by {guild.Owner} ({guild.Owner?.Id.ToString() ?? "N/A"}), ");
                 sb.Append($"{guild.Users.Count(u => u.IsBot)} bots, ");
