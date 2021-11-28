@@ -71,7 +71,13 @@ namespace Uwuify.DiscordBot.WorkerService.Modules
         [Alias("uwu", "owo")]
         public async Task UwuAsync()
         {
-            if (string.IsNullOrWhiteSpace(Context.Message.ReferencedMessage?.Content)) return;
+            if (string.IsNullOrWhiteSpace(Context.Message.ReferencedMessage?.Content))
+            {
+                await Context.Message.ReplyAsync(embed: $"{"Sorry friend, you missed a step?".Uwuify()}{Environment.NewLine}You must either reply to a message or send text if you want me to UwUify something uguu.."
+                    .ToDefaultEmbed(Context, "Uwuify", "https://i.imgur.com/S8scc1V.png"));
+                return;
+            }
+
             var refMsg = Context.Message.ReferencedMessage;
             var outputMsg = refMsg.Content.Uwuify().ToDiscordQuote();
             _logger.LogDebug("{commandName} result: {msg}", nameof(UwuAsync), outputMsg);

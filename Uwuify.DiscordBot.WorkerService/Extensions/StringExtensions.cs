@@ -8,7 +8,7 @@ namespace Uwuify.DiscordBot.WorkerService.Extensions
     {
         private static readonly Color _pinkColor = new Color(0b_111110100110001110001010);
 
-        public static Embed ToDefaultEmbed(this string input, ICommandContext commandContext, string title)
+        public static Embed ToDefaultEmbed(this string input, ICommandContext commandContext, string title, string imageUrl = null)
         {
             var embedBuilder = new EmbedBuilder();
 
@@ -17,6 +17,7 @@ namespace Uwuify.DiscordBot.WorkerService.Extensions
                 .WithDescription(input)
                 .WithAuthor(commandContext.Message.Author)
                 .WithCurrentTimestamp()
+                .WithImageUrl(imageUrl)
                 .WithColor(_pinkColor);
 
             return embedBuilder.Build();
