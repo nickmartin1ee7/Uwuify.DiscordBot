@@ -80,7 +80,8 @@ namespace Uwuify.DiscordBot.WorkerService
             .UseSerilog(Log.Logger)
             .AddDiscordService(
                 services => services.GetRequiredService<IConfiguration>()
-                .GetValue<string>("REMORA_BOT_TOKEN"))
+                .GetSection(nameof(DiscordSettings))
+                .GetValue<string>("Token"))
             .ConfigureServices((_, services) =>
             {
                 services.AddSingleton(configuration);

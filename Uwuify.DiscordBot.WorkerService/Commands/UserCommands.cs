@@ -41,16 +41,16 @@ namespace Uwuify.DiscordBot.WorkerService.Commands
             return Result.FromSuccess();
         }
 
-        //[Command("Uwuify It")]
-        //[CommandType(ApplicationCommandType.Message)]
-        //public async Task<IResult> UwuSomeoneAsync()
-        //{
-        //    _ctx
-        //    var outputMsg = "test".Uwuify();
-        //    _logger.LogDebug("{commandName} result: {msg}", nameof(UwuAsync), outputMsg);
-        //    await _feedbackService.SendContextualEmbedAsync(new Embed("Uwuify", Description: outputMsg), ct: CancellationToken);
-        //    return Result.FromSuccess();
-        //}
+        [Command("Uwuify It")]
+        [CommandType(ApplicationCommandType.Message)]
+        public async Task<IResult> UwuSomeoneAsync()
+        {
+            var c = _ctx as InteractionContext;
+            var outputMsg = "test".Uwuify();
+            _logger.LogDebug("{commandName} result: {msg}", nameof(UwuAsync), outputMsg);
+            await _feedbackService.SendContextualEmbedAsync(new Embed("Uwuify", Description: outputMsg), ct: CancellationToken);
+            return Result.FromSuccess();
+        }
 
         [Command("feedback")]
         [CommandType(ApplicationCommandType.ChatInput)]
