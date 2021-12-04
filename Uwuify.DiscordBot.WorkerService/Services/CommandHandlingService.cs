@@ -76,7 +76,7 @@ namespace Uwuify.DiscordBot.WorkerService.Services
 
             await context.Channel
                 .SendMessageAsync(embed: $"{"Sorry, friend... That didn't work!".Uwuify()}{Environment.NewLine}{result}"
-                .ToDefaultEmbed(context, $"{command.Value.Name} - Error"));
+                .ToDefaultEmbed(context, $"Error - {command.Value.Name}"));
         }
 
         private async Task OnMessageReceivedAsync(SocketMessage arg)
