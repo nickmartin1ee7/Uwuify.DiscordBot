@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Uwuify.DiscordBot.WorkerService.Extensions;
 using Uwuify.DiscordBot.WorkerService.Models;
 using Uwuify.Humanizer;
 
@@ -72,8 +73,10 @@ namespace Uwuify.DiscordBot.WorkerService.Services
                 context.Guild?.Id,
                 result,
                 context.Message.Content);
-            
-            await context.Channel.SendMessageAsync("Sorry, friend... That didn't work!".Uwuify());
+
+            await context.Channel
+                .SendMessageAsync(embed: $"{"Sorry, friend... That didn't work!".Uwuify()}{Environment.NewLine}{result}"
+                .ToDefaultEmbed(context, $"{command.Value.Name} - Error"));
         }
 
         private async Task OnMessageReceivedAsync(SocketMessage arg)
