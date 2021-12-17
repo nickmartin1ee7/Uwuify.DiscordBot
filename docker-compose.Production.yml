@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   workerservice:
-    image: nickmartin1ee7/uwuify-discordbot:latest
+    image: nickmartin1ee7/uwuifydiscordbotworkerservice:latest
     environment:
       - DiscordSettings__Token=${DISCORD_TOKEN}
     depends_on:
