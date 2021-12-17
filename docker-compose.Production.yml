@@ -1,18 +1,15 @@
 version: '3.4'
 
 services:
-  uwuify.discordbot.workerservice:
-    container_name: discordbot
-    image: ${DOCKER_REGISTRY-}uwuifydiscordbotworkerservice
+  workerservice:
+    container_name: uwuify-discordbot
+    image: nickmartin1ee7/uwuify-discordbot:latest
     environment:
       - DiscordSettings__Token
-    build:
-      context: .
-      dockerfile: Uwuify.DiscordBot.WorkerService/Dockerfile
     depends_on:
         - seq
   seq:
-    container_name: seq
+    container_name: uwuify-seq
     image: datalust/seq:2021.3.6681
     ports:
         - 8081:80

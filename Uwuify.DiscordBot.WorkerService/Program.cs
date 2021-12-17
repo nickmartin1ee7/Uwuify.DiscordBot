@@ -22,6 +22,7 @@ namespace Uwuify.DiscordBot.WorkerService
 #else
                 .AddJsonFile("appsettings.json")
 #endif
+                .AddEnvironmentVariables()
                 .Build();
 
             Log.Logger = new LoggerConfiguration()
