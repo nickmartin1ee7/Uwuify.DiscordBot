@@ -2,21 +2,19 @@ version: '3.4'
 
 services:
   workerservice:
-    container_name: uwuify-discordbot
     image: nickmartin1ee7/uwuify-discordbot:latest
     environment:
-      - DiscordSettings__Token
+      - DiscordSettings__Token=${DISCORD_TOKEN}
     depends_on:
         - seq
   seq:
-    container_name: uwuify-seq
     image: datalust/seq:2021.3.6681
     ports:
-        - 8081:80
+        - 8080:80
     environment:
         - ACCEPT_EULA=Y
     volumes:
-        - uwuify-seqdata:/data
+        - seqdata:/data
 
 volumes:
-  uwuify-seqdata:
+  seqdata:
