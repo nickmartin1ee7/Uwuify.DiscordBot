@@ -31,27 +31,5 @@ jobs:
     needs: build
 
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Update Application Files
-      env:
-        INSTALLDIR: ${{ secrets.INSTALL_DIR }}
-      run:
-        cp -r * $INSTALLDIR
-
-    - name: Stop Discord Bot Service
-      env:
-        SUDOER: ${{ secrets.SUDO_CD }}
-      run:
-        echo "$SUDOER" | xargs sudo -S service uwuify-discord-bot stop
-
-    - name: Start Discord Bot service
-      env:
-        SUDOER: ${{ secrets.SUDO_CD }}
-      run:
-        echo "$SUDOER" | xargs sudo -S service uwuify-discord-bot restart
-
-    - name: Clean Bash History
-      continue-on-error: true
-      run:
-        cat /dev/null > ~/.bash_history && history -cw
+    - run: |
+        curl --location --request POST 'https://pi.hole:9443/api/webhooks/ed3e9573-7ae6-4fe4-afc6-d73e5cd509bc'
