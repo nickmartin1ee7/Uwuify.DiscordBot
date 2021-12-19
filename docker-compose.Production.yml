@@ -1,13 +1,10 @@
 version: '3.4'
 
 services:
-  uwuify.discordbot.workerservice:
-    image: ${DOCKER_REGISTRY-}uwuifydiscordbotworkerservice
+  workerservice:
+    image: nickmartin1ee7/uwuifydiscordbotworkerservice:latest
     environment:
-      - DiscordSettings__Token
-    build:
-      context: .
-      dockerfile: Uwuify.DiscordBot.WorkerService/Dockerfile
+      - DiscordSettings__Token=${DISCORD_TOKEN}
     depends_on:
         - seq
   seq:
