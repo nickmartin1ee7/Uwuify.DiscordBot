@@ -40,8 +40,11 @@ jobs:
     - name: Docker Setup Buildx
       uses: docker/setup-buildx-action@v1.6.0
       
+    - name: Pull source code
+      uses: actions/checkout@v2
+      
     - name: Build Docker image
-      run: docker buildx build --platform linux/arm64 -f "Uwuify.DiscordBot.WorkerService\Dockerfile" --force-rm -t nickmartin1ee7/uwuifydiscordbotworkerservice:latest --load .
+      run: docker buildx build --platform linux/arm64 -f "Uwuify.DiscordBot.WorkerService/Dockerfile" --force-rm -t nickmartin1ee7/uwuifydiscordbotworkerservice:latest --load .
     
     - name: Publish Docker image
       run: docker push nickmartin1ee7/uwuifydiscordbotworkerservice:latest
