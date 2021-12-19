@@ -26,6 +26,9 @@ namespace Uwuify.DiscordBot.WorkerService
                 .Build();
 
             Log.Logger = new LoggerConfiguration()
+                .WriteTo.Seq("http://seq:80",
+                    apiKey: configuration.GetSection("Serilog")
+                        .GetValue<string>("ApiKey"))
                 .ReadFrom.Configuration(configuration)
                 .CreateLogger();
 
