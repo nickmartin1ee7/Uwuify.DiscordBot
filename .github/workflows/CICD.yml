@@ -32,4 +32,4 @@ jobs:
 
     steps:
     - run: |
-        curl --location --request POST 'https://pi.hole:9443/api/webhooks/ed3e9573-7ae6-4fe4-afc6-d73e5cd509bc'
+        curl --location --request POST 'http://localhost:9000/api/webhooks/ed3e9573-7ae6-4fe4-afc6-d73e5cd509bc'
