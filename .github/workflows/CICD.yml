@@ -55,4 +55,9 @@ jobs:
       run: docker push nickmartin1ee7/uwuifydiscordbotworkerservice:latest
     
     - name: Trigger production image pull
+      if: ${{ github.ref == 'refs/heads/main' }}
       run: curl --location --request POST '${{ secrets.PROD_WEBHOOK_URI }}'
+   
+    - name: Trigger production image pull
+      if: ${{ github.ref == 'refs/heads/dev' }}
+      run: curl --location --request POST '${{ secrets.DEV_WEBHOOK_URI }}'
