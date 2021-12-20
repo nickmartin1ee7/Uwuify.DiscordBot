@@ -8,7 +8,9 @@ using Remora.Discord.Hosting.Extensions;
 using Remora.Rest.Core;
 using Serilog;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using Remora.Discord.Gateway.Extensions;
 using Uwuify.DiscordBot.WorkerService.Commands;
 using Uwuify.DiscordBot.WorkerService.Models;
 
@@ -48,12 +50,22 @@ public static class Program
                     .AddSingleton(configuration
                         .GetSection(nameof(DiscordSettings))
                         .Get<DiscordSettings>());
+
+                var responderTypes = typeof(Program).Assembly
+                    .GetExportedTypes()
+                    .Where(t => t.IsResponder());
+
+                foreach (var responderType in responderTypes)
+                {
+                    services.AddResponder(responderType);
+                }
             })
             .AddDiscordService(_ => token)
             .Build();
 
+        ValidateSlashCommandSupport(host);
 #if DEBUG
-        await CheckSlashCommandSupport(host);
+        await UpdateDebugSlashCommands(host);
 #endif
 
         try
@@ -70,7 +82,19 @@ public static class Program
         }
     }
 
-    private static async Task CheckSlashCommandSupport(IHost host)
+    private static void ValidateSlashCommandSupport(IHost host)
+    {
+        var slashService = host.Services.GetRequiredService<SlashService>();
+        var checkSlashSupport = slashService.SupportsSlashCommands();
+        if (!checkSlashSupport.IsSuccess)
+        {
+            Log.Logger.Warning(
+                "The registered commands of the bot don't support slash commands: {Reason}",
+                checkSlashSupport.Error!.Message);
+        }
+    }
+
+    private static async Task UpdateDebugSlashCommands(IHost host)
     {
         var debugServerString = host.Services.GetRequiredService<DiscordSettings>().DebugServerId;
 
@@ -80,23 +104,12 @@ public static class Program
         }
 
         var slashService = host.Services.GetRequiredService<SlashService>();
-
-        var checkSlashSupport = slashService.SupportsSlashCommands();
-        if (!checkSlashSupport.IsSuccess)
+        var updateSlash = await slashService.UpdateSlashCommandsAsync(debugServer);
+        if (!updateSlash.IsSuccess)
         {
             Log.Logger.Warning(
-                "The registered commands of the bot don't support slash commands: {Reason}",
-                checkSlashSupport.Error!.Message);
-        }
-        else
-        {
-            var updateSlash = await slashService.UpdateSlashCommandsAsync(debugServer);
-            if (!updateSlash.IsSuccess)
-            {
-                Log.Logger.Warning(
-                    "Failed to update slash commands: {Reason}",
-                    updateSlash.Error!.Message);
-            }
+                "Failed to update slash commands: {Reason}",
+                updateSlash.Error!.Message);
         }
     }
 }

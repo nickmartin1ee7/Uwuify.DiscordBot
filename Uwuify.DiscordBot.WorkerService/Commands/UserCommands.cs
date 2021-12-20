@@ -73,13 +73,13 @@ namespace Uwuify.DiscordBot.WorkerService.Commands
 
         [Command("Uwuify This Message")]
         [CommandType(ApplicationCommandType.Message)]
-        public async Task<IResult> UwuThisAsync()
+        public async Task<IResult> UwuThisMessageAsync()
         {
 
             var c = _ctx as InteractionContext;
             var originalMessage = c!.Data.Resolved.Value.Messages.Value.Values.First().Content.Value;
 
-            await LogCommandUsageAsync(typeof(UserCommands).GetMethod(nameof(UwuThisAsync)), originalMessage);
+            await LogCommandUsageAsync(typeof(UserCommands).GetMethod(nameof(UwuThisMessageAsync)), originalMessage);
 
             var outputMsg = originalMessage.Uwuify();
 
