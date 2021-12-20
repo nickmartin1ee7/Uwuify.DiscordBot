@@ -9,7 +9,6 @@ using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Services;
 using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Responders;
-using Remora.Discord.Rest.API;
 using Remora.Results;
 using Uwuify.DiscordBot.WorkerService.Extensions;
 
@@ -21,19 +20,16 @@ public class ReadyResponder : IResponder<IReady>
     private readonly DiscordGatewayClient _discordGatewayClient;
     private readonly DiscordSettings _settings;
     private readonly SlashService _slashService;
-    private readonly IDiscordRestGuildAPI _guildApi;
 
     public ReadyResponder(ILogger<ReadyResponder> logger,
         DiscordGatewayClient discordGatewayClient,
         DiscordSettings settings,
-        SlashService slashService,
-        IDiscordRestGuildAPI guildApi)
+        SlashService slashService)
     {
         _logger = logger;
         _discordGatewayClient = discordGatewayClient;
         _settings = settings;
         _slashService = slashService;
-        _guildApi = guildApi;
     }
 
     public async Task<Result> RespondAsync(IReady gatewayEvent, CancellationToken ct = new())
