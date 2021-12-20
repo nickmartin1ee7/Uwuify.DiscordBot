@@ -27,11 +27,13 @@ public class GuildJoinedResponder : IResponder<IGuildCreate>
 
     public async Task<Result> RespondAsync(IGuildCreate gatewayEvent, CancellationToken ct = new())
     {
-        if (gatewayEvent.IsUnavailable.Value) return Result.FromSuccess();
+        if (InMemoryGuildStorage.Guilds.Contains(gatewayEvent.ID)) return Result.FromSuccess();
 
         _logger.LogInformation("Joined new guild: {guildName} ({guildId})",
             gatewayEvent.Name,
             gatewayEvent.ID);
+
+        InMemoryGuildStorage.Guilds.Add(gatewayEvent.ID);
 
         await _logger.LogGuildCountAsync(_userApi, ct);
 

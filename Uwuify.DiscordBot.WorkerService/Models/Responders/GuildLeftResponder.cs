@@ -9,7 +9,7 @@ using Uwuify.DiscordBot.WorkerService.Extensions;
 
 namespace Uwuify.DiscordBot.WorkerService.Models.Responders;
 
-public class GuildLeftResponder : IResponder<IGuildCreate>
+public class GuildLeftResponder : IResponder<IGuildDelete>
 {
     private readonly ILogger<GuildLeftResponder> _logger;
     private readonly IDiscordRestUserAPI _userApi;
@@ -21,13 +21,14 @@ public class GuildLeftResponder : IResponder<IGuildCreate>
         _userApi = userApi;
     }
 
-    public async Task<Result> RespondAsync(IGuildCreate gatewayEvent, CancellationToken ct = new())
+    public async Task<Result> RespondAsync(IGuildDelete gatewayEvent, CancellationToken ct = new())
     {
-        if (gatewayEvent.IsUnavailable.Value) return Result.FromSuccess();
+        if (!InMemoryGuildStorage.Guilds.Contains(gatewayEvent.GuildID)) return Result.FromSuccess();
         
-        _logger.LogInformation("Left guild: {guildName} ({guildId})",
-            gatewayEvent.Name,
-            gatewayEvent.ID);
+        _logger.LogInformation("Left guild: {guildId}",
+            gatewayEvent.GuildID);
+
+        InMemoryGuildStorage.Guilds.Remove(gatewayEvent.GuildID);
 
         await _logger.LogGuildCountAsync(_userApi, ct);
 

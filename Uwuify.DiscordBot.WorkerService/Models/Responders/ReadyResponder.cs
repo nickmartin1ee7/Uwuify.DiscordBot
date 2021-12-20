@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
-using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Gateway.Commands;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Services;
@@ -52,6 +51,11 @@ public class ReadyResponder : IResponder<IReady>
             });
 
             _discordGatewayClient.SubmitCommand(updateCommand);
+        }
+
+        foreach (var gatewayEventGuild in gatewayEvent.Guilds)
+        {
+            InMemoryGuildStorage.Guilds.Add(gatewayEventGuild.GuildID);
         }
 
         _logger.LogInformation("{botUser} is online for {guildCount} guilds",
