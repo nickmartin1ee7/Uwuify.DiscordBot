@@ -27,7 +27,7 @@ jobs:
       run: dotnet test --no-build --verbosity normal Uwuify.DiscordBot.sln
 
   publish:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: build
 
     steps:
@@ -51,9 +51,19 @@ jobs:
       if: ${{ github.ref == 'refs/heads/dev' }}
       run: docker buildx build --platform linux/arm64 -f "Uwuify.DiscordBot.WorkerService/Dockerfile" --force-rm -t nickmartin1ee7/uwuifydiscordbotworkerservice:dev --load .
     
-    - name: Publish Docker image
+    - name: Publish Latest Docker image
+      if: ${{ github.ref == 'refs/heads/main' }}
       run: docker push nickmartin1ee7/uwuifydiscordbotworkerservice:latest
+      
+    - name: Publish Dev Docker image
+      if: ${{ github.ref == 'refs/heads/dev' }}
+      run: docker push nickmartin1ee7/uwuifydiscordbotworkerservice:dev
     
+  deployment:
+    runs-on: self-hosted
+    needs: publish
+
+    steps:
     - name: Trigger production image pull
       if: ${{ github.ref == 'refs/heads/main' }}
       run: curl --location --request POST '${{ secrets.PROD_WEBHOOK_URI }}'
