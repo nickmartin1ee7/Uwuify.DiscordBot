@@ -9,6 +9,7 @@ using Remora.Rest.Core;
 using Serilog;
 using System;
 using System.Threading.Tasks;
+using Remora.Discord.Gateway.Extensions;
 using Uwuify.DiscordBot.WorkerService.Commands;
 using Uwuify.DiscordBot.WorkerService.Models;
 
@@ -79,22 +80,26 @@ namespace Uwuify.DiscordBot.WorkerService
             }
         }
 
-        private static IHostBuilder CreateHostBuilder(IConfiguration configuration, string[] args) =>
-            Host.CreateDefaultBuilder(args)
-            .UseSerilog(Log.Logger)
-            .AddDiscordService(
-                services => services.GetRequiredService<IConfiguration>()
+        private static IHostBuilder CreateHostBuilder(IConfiguration configuration, string[] args)
+        {
+            var token = configuration
                 .GetSection(nameof(DiscordSettings))
-                .GetValue<string>("Token"))
-            .ConfigureServices((_, services) =>
-            {
-                services.AddSingleton(configuration);
-                services.AddSingleton(configuration
-                    .GetSection(nameof(DiscordSettings))
-                    .Get<DiscordSettings>());
-                services.AddDiscordCommands()
-                .AddCommandGroup<UserCommands>();
-                services.AddTransient<SlashService>();
-            });
+                .GetValue<string>("Token");
+
+            return Host.CreateDefaultBuilder(args)
+                .UseSerilog(Log.Logger)
+                .AddDiscordService(_ => token)
+                .ConfigureServices((_, services) =>
+                {
+                    services.AddSingleton(configuration);
+                    services.AddSingleton(configuration
+                        .GetSection(nameof(DiscordSettings))
+                        .Get<DiscordSettings>());
+                    services.AddDiscordCommands()
+                        .AddCommandGroup<UserCommands>();
+                    services.AddDiscordGateway(_ => token);
+                    services.AddTransient<SlashService>();
+                });
+        }
     }
 }

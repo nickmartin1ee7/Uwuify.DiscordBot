@@ -1,15 +1,15 @@
-﻿using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Uwuify.Humanizer;
-using Remora.Commands.Groups;
+﻿using Microsoft.Extensions.Logging;
 using Remora.Commands.Attributes;
+using Remora.Commands.Groups;
+using Remora.Discord.API.Abstractions.Objects;
+using Remora.Discord.API.Objects;
+using Remora.Discord.Commands.Attributes;
+using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Results;
-using Remora.Discord.API.Objects;
-using Remora.Discord.Commands.Contexts;
 using System.ComponentModel;
-using Remora.Discord.API.Abstractions.Objects;
-using Remora.Discord.Commands.Attributes;
+using System.Threading.Tasks;
+using Uwuify.Humanizer;
 
 namespace Uwuify.DiscordBot.WorkerService.Commands
 {
@@ -28,31 +28,20 @@ namespace Uwuify.DiscordBot.WorkerService.Commands
             _ctx = ctx;
         }
 
-        [Command("uwuify", "uwu", "owo")]
+        [Command("uwuify")]
         [CommandType(ApplicationCommandType.ChatInput)]
         [Description("Convert your message into UwU")]
         public async Task<IResult> UwuAsync([Description("text")] string text)
         {
             var outputMsg = text.Uwuify();
-            _logger.LogDebug("{commandName} result: {msg}", nameof(UwuAsync), outputMsg);
-            await _feedbackService.SendContextualEmbedAsync(new Embed("Uwuify", Description: outputMsg), ct: CancellationToken);
-            return Result.FromSuccess();
-        }
-
-        [Command("Uwuify This")]
-        [CommandType(ApplicationCommandType.Message)]
-        public async Task<IResult> UwuSomeoneAsync()
-        {
-            var c = _ctx as InteractionContext;
             
-            var outputMsg = c?.Message.Value.Content.Uwuify();
-
             _logger.LogDebug("{commandName} result: {msg}", nameof(UwuAsync), outputMsg);
-
-            await _feedbackService.SendContextualEmbedAsync(new Embed("Uwuify", Description: outputMsg),
-                ct: CancellationToken);
-
-            return Result.FromSuccess();
+            
+            var reply = await _feedbackService.SendContextualEmbedAsync(new Embed("Uwuify", Description: outputMsg), ct: CancellationToken);
+            
+            return reply.IsSuccess
+                ? Result.FromSuccess()
+                : Result.FromError(reply);
         }
 
         [Command("feedback")]
@@ -62,10 +51,30 @@ namespace Uwuify.DiscordBot.WorkerService.Commands
         {
             _logger.LogInformation("New feedback left by {userName}. Feedback: {feedbackText}", $"{_ctx.User.Username}#{_ctx.User.Discriminator}", text.Trim());
 
-            await _feedbackService.SendContextualEmbedAsync(new Embed("Feedback Submitted",
+            var reply = await _feedbackService.SendContextualEmbedAsync(new Embed("Feedback Submitted",
                 Description: "Thank you for your feedback! A developer will review your comments shortly."), ct: CancellationToken);
 
-            return Result.FromSuccess();
+            return reply.IsSuccess
+                ? Result.FromSuccess()
+                : Result.FromError(reply);
+        }
+
+        [Command("Uwuify This")]
+        [CommandType(ApplicationCommandType.Message)]
+        public async Task<IResult> UwuThisAsync()
+        {
+            var c = _ctx as InteractionContext;
+
+            var outputMsg = c?.Message.Value.Content.Uwuify();
+
+            _logger.LogDebug("{commandName} result: {msg}", nameof(UwuAsync), outputMsg);
+
+            var reply = await _feedbackService.SendContextualEmbedAsync(new Embed("Uwuify", Description: outputMsg),
+                ct: CancellationToken);
+
+            return reply.IsSuccess
+                ? Result.FromSuccess()
+                : Result.FromError(reply);
         }
     }
 }
