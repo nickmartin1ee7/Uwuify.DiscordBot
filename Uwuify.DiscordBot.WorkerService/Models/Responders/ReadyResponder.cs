@@ -55,7 +55,7 @@ public class ReadyResponder : IResponder<IReady>
 
         foreach (var gatewayEventGuild in gatewayEvent.Guilds)
         {
-            InMemoryGuildStorage.Guilds.Add(gatewayEventGuild.GuildID);
+            ShortTermMemory.KnownGuilds.Add(gatewayEventGuild.GuildID);
         }
 
         _logger.LogInformation("{botUser} is online for {guildCount} guilds",

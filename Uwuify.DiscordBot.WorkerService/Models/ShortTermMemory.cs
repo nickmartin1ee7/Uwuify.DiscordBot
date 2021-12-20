@@ -3,8 +3,8 @@ using Remora.Rest.Core;
 
 namespace Uwuify.DiscordBot.WorkerService.Models
 {
-    public static class InMemoryGuildStorage
+    public static class ShortTermMemory
     {
-        public static HashSet<Snowflake> Guilds { get; } = new();
+        public static HashSet<Snowflake> KnownGuilds { get; } = new();
     }
 }

@@ -27,20 +27,17 @@ public class GuildJoinedResponder : IResponder<IGuildCreate>
 
     public async Task<Result> RespondAsync(IGuildCreate gatewayEvent, CancellationToken ct = new())
     {
-        if (InMemoryGuildStorage.Guilds.Contains(gatewayEvent.ID)) return Result.FromSuccess();
-
+        if (ShortTermMemory.KnownGuilds.Contains(gatewayEvent.ID))
+            return Result.FromSuccess();
+        
         _logger.LogInformation("Joined new guild: {guildName} ({guildId})",
             gatewayEvent.Name,
             gatewayEvent.ID);
 
-        InMemoryGuildStorage.Guilds.Add(gatewayEvent.ID);
+        ShortTermMemory.KnownGuilds.Add(gatewayEvent.ID);
 
         await _logger.LogGuildCountAsync(_userApi, ct);
 
-        var result = await _slashService.UpdateSlashCommandsAsync(gatewayEvent.ID, ct);
-
-        return result.IsSuccess
-            ? Result.FromSuccess()
-            : Result.FromError(result.Error);
+        return Result.FromSuccess();
     }
 }

@@ -23,12 +23,13 @@ public class GuildLeftResponder : IResponder<IGuildDelete>
 
     public async Task<Result> RespondAsync(IGuildDelete gatewayEvent, CancellationToken ct = new())
     {
-        if (!InMemoryGuildStorage.Guilds.Contains(gatewayEvent.GuildID)) return Result.FromSuccess();
+        if (!ShortTermMemory.KnownGuilds.Contains(gatewayEvent.GuildID))
+            return Result.FromSuccess();
         
         _logger.LogInformation("Left guild: {guildId}",
             gatewayEvent.GuildID);
 
-        InMemoryGuildStorage.Guilds.Remove(gatewayEvent.GuildID);
+        ShortTermMemory.KnownGuilds.Remove(gatewayEvent.GuildID);
 
         await _logger.LogGuildCountAsync(_userApi, ct);
 
