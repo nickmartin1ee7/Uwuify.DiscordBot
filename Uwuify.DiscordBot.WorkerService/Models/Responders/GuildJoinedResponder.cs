@@ -16,7 +16,9 @@ public class GuildJoinedResponder : IResponder<IGuildCreate>
     private readonly SlashService _slashService;
     private readonly IDiscordRestUserAPI _userApi;
 
-    public GuildJoinedResponder(ILogger<GuildJoinedResponder> logger, SlashService slashService, IDiscordRestUserAPI userApi)
+    public GuildJoinedResponder(ILogger<GuildJoinedResponder> logger,
+        SlashService slashService,
+        IDiscordRestUserAPI userApi)
     {
         _logger = logger;
         _slashService = slashService;
@@ -25,6 +27,8 @@ public class GuildJoinedResponder : IResponder<IGuildCreate>
 
     public async Task<Result> RespondAsync(IGuildCreate gatewayEvent, CancellationToken ct = new())
     {
+        if (gatewayEvent.IsUnavailable.Value) return Result.FromSuccess();
+
         _logger.LogInformation("Joined new guild: {guildName} ({guildId})",
             gatewayEvent.Name,
             gatewayEvent.ID);
