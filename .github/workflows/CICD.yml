@@ -55,4 +55,4 @@ jobs:
       run: docker push nickmartin1ee7/uwuifydiscordbotworkerservice:latest
     
     - name: Trigger production image pull
-      run: curl --location --request POST '${{ secrets.WEBHOOKURI }}'
+      run: curl --location --request POST '${{ secrets.PROD_WEBHOOK_URI }}'
