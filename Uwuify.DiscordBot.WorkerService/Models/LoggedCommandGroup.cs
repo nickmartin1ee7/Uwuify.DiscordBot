@@ -9,6 +9,7 @@ using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Contexts;
+using Uwuify.DiscordBot.WorkerService.Extensions;
 
 namespace Uwuify.DiscordBot.WorkerService.Models
 {
@@ -40,7 +41,7 @@ namespace Uwuify.DiscordBot.WorkerService.Models
 
             _logger.LogInformation("{command} triggered by {user} ({userId}) in #{channel} ({channelId}); {guild} ({guildId}); Message: {message}",
                 commandName,
-                $"{_ctx.User.Username}#{_ctx.User.Discriminator}",
+                _ctx.User.ToFullUsername(),
                 _ctx.User.ID,
                 channelName.Entity.Name.Value,
                 _ctx.ChannelID,

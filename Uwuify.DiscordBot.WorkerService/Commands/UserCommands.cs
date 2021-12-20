@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Rest.Core;
+using Uwuify.DiscordBot.WorkerService.Extensions;
 using Uwuify.DiscordBot.WorkerService.Models;
 using Uwuify.Humanizer;
 
@@ -59,7 +60,7 @@ namespace Uwuify.DiscordBot.WorkerService.Commands
         {
             await LogCommandUsageAsync(typeof(UserCommands).GetMethod(nameof(FeedbackAsync)), text);
 
-            _logger.LogInformation("New feedback left by {userName}. Feedback: {feedbackText}", $"{_ctx.User.Username}#{_ctx.User.Discriminator}", text.Trim());
+            _logger.LogInformation("New feedback left by {userName}. Feedback: {feedbackText}", _ctx.User.ToFullUsername(), text.Trim());
 
             var reply = await _feedbackService.SendContextualEmbedAsync(new Embed("Feedback Submitted", 
                 Description: "Thank you for your feedback! A developer will review your comments shortly.", 

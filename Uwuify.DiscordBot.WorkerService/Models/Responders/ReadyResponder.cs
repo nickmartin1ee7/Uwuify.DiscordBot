@@ -8,6 +8,7 @@ using Remora.Discord.API.Objects;
 using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
+using Uwuify.DiscordBot.WorkerService.Extensions;
 
 namespace Uwuify.DiscordBot.WorkerService.Models.Responders;
 
@@ -27,7 +28,7 @@ public class ReadyResponder : IResponder<IReady>
     public async Task<Result> RespondAsync(IReady gatewayEvent, CancellationToken ct = new())
     {
         _logger.LogInformation("{botUser} is online for {guildCount} guilds",
-            $"{gatewayEvent.User.Username}#{gatewayEvent.User.Discriminator}",
+            gatewayEvent.User.ToFullUsername(),
             gatewayEvent.Guilds.Count);
 
         var updateCommand = new UpdatePresence(ClientStatus.Online, false, null, new IActivity[]
