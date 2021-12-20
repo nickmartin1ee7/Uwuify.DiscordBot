@@ -24,10 +24,12 @@ public static class Program
             .AddEnvironmentVariables()
             .Build();
 
+        var serilogApiKey = configuration.GetSection("Serilog")
+            .GetValue<string>("ApiKey");
+
         Log.Logger = new LoggerConfiguration()
             .WriteTo.Seq("http://seq:80",
-                apiKey: configuration.GetSection("Serilog")
-                    .GetValue<string>("ApiKey"))
+                apiKey: serilogApiKey)
             .ReadFrom.Configuration(configuration)
             .CreateLogger();
 
