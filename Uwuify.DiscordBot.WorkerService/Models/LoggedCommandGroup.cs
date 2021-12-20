@@ -38,7 +38,7 @@ namespace Uwuify.DiscordBot.WorkerService.Models
 
             var channelName = await _channelApi.GetChannelAsync(_ctx.ChannelID, ct: CancellationToken);
 
-            _logger.LogInformation("{command} triggered by {user} ({userId}) in {channel} ({channelId}); {guild} ({guildId}); Message: {message}",
+            _logger.LogInformation("{command} triggered by {user} ({userId}) in #{channel} ({channelId}); {guild} ({guildId}); Message: {message}",
                 commandName,
                 $"{_ctx.User.Username}#{_ctx.User.Discriminator}",
                 _ctx.User.ID,
