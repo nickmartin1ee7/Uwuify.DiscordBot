@@ -5,7 +5,6 @@ using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Services;
 using Remora.Discord.Gateway.Responders;
-using Remora.Discord.Rest.API;
 using Remora.Results;
 using Uwuify.DiscordBot.WorkerService.Extensions;
 
