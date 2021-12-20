@@ -52,8 +52,6 @@ public static class Program
             .AddDiscordService(_ => token)
             .Build();
 
-        await host.RunAsync();
-
 #if DEBUG
         await CheckSlashCommandSupport(host);
 #endif
@@ -78,7 +76,7 @@ public static class Program
 
         if (!Snowflake.TryParse(debugServerString, out var debugServer))
         {
-            Log.Logger.Warning("Failed to parse debug server from environment");
+            Log.Logger.Warning("Failed to parse debug server from configuration!");
         }
 
         var slashService = host.Services.GetRequiredService<SlashService>();
