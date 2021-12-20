@@ -7,9 +7,11 @@ using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Results;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using Remora.Discord.API.Abstractions.Rest;
+using Remora.Rest.Core;
 using Uwuify.DiscordBot.WorkerService.Models;
 using Uwuify.Humanizer;
 
@@ -40,7 +42,10 @@ namespace Uwuify.DiscordBot.WorkerService.Commands
 
             _logger.LogDebug("{commandName} result: {msg}", nameof(UwuAsync), outputMsg);
 
-            var reply = await _feedbackService.SendContextualEmbedAsync(new Embed("Uwuify", Description: outputMsg), ct: CancellationToken);
+            var reply = await _feedbackService.SendContextualEmbedAsync(new Embed("Uwuify",
+                Description: outputMsg,
+                Colour: new Optional<Color>(Color.PaleVioletRed)),
+                ct: CancellationToken);
 
             return reply.IsSuccess
                 ? Result.FromSuccess()
@@ -56,8 +61,10 @@ namespace Uwuify.DiscordBot.WorkerService.Commands
 
             _logger.LogInformation("New feedback left by {userName}. Feedback: {feedbackText}", $"{_ctx.User.Username}#{_ctx.User.Discriminator}", text.Trim());
 
-            var reply = await _feedbackService.SendContextualEmbedAsync(new Embed("Feedback Submitted",
-                Description: "Thank you for your feedback! A developer will review your comments shortly."), ct: CancellationToken);
+            var reply = await _feedbackService.SendContextualEmbedAsync(new Embed("Feedback Submitted", 
+                Description: "Thank you for your feedback! A developer will review your comments shortly.", 
+                Colour: new Optional<Color>(Color.PaleVioletRed)), 
+                ct: CancellationToken);
 
             return reply.IsSuccess
                 ? Result.FromSuccess()
@@ -78,7 +85,9 @@ namespace Uwuify.DiscordBot.WorkerService.Commands
 
             _logger.LogDebug("{commandName} result: {msg}", nameof(UwuAsync), outputMsg);
 
-            var reply = await _feedbackService.SendContextualEmbedAsync(new Embed("Uwuify", Description: outputMsg),
+            var reply = await _feedbackService.SendContextualEmbedAsync(new Embed($"{c.Member.Value.Nickname.Value} just got UwU-ed!",
+                    Description: outputMsg,
+                    Colour: new Optional<Color>(Color.PaleVioletRed)),
                 ct: CancellationToken);
 
             return reply.IsSuccess

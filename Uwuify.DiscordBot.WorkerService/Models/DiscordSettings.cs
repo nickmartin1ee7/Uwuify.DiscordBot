@@ -1,8 +1,7 @@
-﻿namespace Uwuify.DiscordBot.WorkerService.Models
+﻿namespace Uwuify.DiscordBot.WorkerService.Models;
+
+public class DiscordSettings
 {
-    public class DiscordSettings
-    {
-        public ulong OwnerId { get; set; }
-        public string DebugServerId { get; set; }
-    }
+    public ulong OwnerId { get; set; }
+    public string DebugServerId { get; set; }
 }
