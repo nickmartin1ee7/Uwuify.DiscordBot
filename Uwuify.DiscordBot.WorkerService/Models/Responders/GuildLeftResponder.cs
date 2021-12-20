@@ -11,31 +11,25 @@ using Uwuify.DiscordBot.WorkerService.Extensions;
 
 namespace Uwuify.DiscordBot.WorkerService.Models.Responders;
 
-public class GuildJoinedResponder : IResponder<IGuildCreate>
+public class GuildLeftResponder : IResponder<IGuildCreate>
 {
-    private readonly ILogger<GuildJoinedResponder> _logger;
-    private readonly SlashService _slashService;
+    private readonly ILogger<GuildLeftResponder> _logger;
     private readonly IDiscordRestUserAPI _userApi;
 
-    public GuildJoinedResponder(ILogger<GuildJoinedResponder> logger, SlashService slashService, IDiscordRestUserAPI userApi)
+    public GuildLeftResponder(ILogger<GuildLeftResponder> logger, IDiscordRestUserAPI userApi)
     {
         _logger = logger;
-        _slashService = slashService;
         _userApi = userApi;
     }
 
     public async Task<Result> RespondAsync(IGuildCreate gatewayEvent, CancellationToken ct = new())
     {
-        _logger.LogInformation("Joined new guild: {guildName} ({guildId})",
+        _logger.LogInformation("Left guild: {guildName} ({guildId})",
             gatewayEvent.Name,
             gatewayEvent.ID);
 
         await _logger.LogGuildCountAsync(_userApi, ct);
 
-        var result = await _slashService.UpdateSlashCommandsAsync(gatewayEvent.ID, ct);
-
-        return result.IsSuccess
-            ? Result.FromSuccess()
-            : Result.FromError(result.Error);
+        return Result.FromSuccess();
     }
 }
