@@ -2,24 +2,38 @@ version: '3.4'
 
 services:
   uwuify.discordbot.workerservice:
-    container_name: discordbot
     image: ${DOCKER_REGISTRY-}uwuifydiscordbotworkerservice
     build:
       context: .
       dockerfile: Uwuify.DiscordBot.WorkerService/Dockerfile
-    links:
-        - seq
+    environment:
+          - DiscordSettings__Token=${DISCORD_TOKEN}
+          - Serilog__ApiKey
     depends_on:
         - seq
+    deploy:
+        replicas: 1
+        mode: replicated
+        update_config:
+          parallelism: 1
+        restart_policy:
+          condition: any
+
   seq:
-    container_name: seq
-    image: datalust/seq:2021.3.6410-pre
+    image: datalust/seq:2021.3.6681
     ports:
-        - 8081:80
+        - 8080:80
     environment:
         - ACCEPT_EULA=Y
     volumes:
-        - uwuify-seqdata:/data
+        - seqdata:/data
+    deploy:
+      replicas: 1
+      mode: replicated
+      update_config:
+        parallelism: 1
+      restart_policy:
+        condition: any
 
 volumes:
-  uwuify-seqdata:
+  seqdata:

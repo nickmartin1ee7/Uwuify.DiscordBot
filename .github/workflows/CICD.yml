@@ -31,27 +31,23 @@ jobs:
     needs: build
 
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Update Application Files
-      env:
-        INSTALLDIR: ${{ secrets.INSTALL_DIR }}
-      run:
-        cp -r * $INSTALLDIR
-
-    - name: Stop Discord Bot Service
-      env:
-        SUDOER: ${{ secrets.SUDO_CD }}
-      run:
-        echo "$SUDOER" | xargs sudo -S service uwuify-discord-bot stop
-
-    - name: Start Discord Bot service
-      env:
-        SUDOER: ${{ secrets.SUDO_CD }}
-      run:
-        echo "$SUDOER" | xargs sudo -S service uwuify-discord-bot restart
-
-    - name: Clean Bash History
-      continue-on-error: true
-      run:
-        cat /dev/null > ~/.bash_history && history -cw
+    - name: Docker Login
+      uses: docker/login-action@v1.10.0
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_ACCESSTOKEN }}
+        
+    - name: Docker Setup Buildx
+      uses: docker/setup-buildx-action@v1.6.0
+      
+    - name: Pull source code
+      uses: actions/checkout@v2
+      
+    - name: Build Docker image
+      run: docker buildx build --platform linux/arm64 -f "Uwuify.DiscordBot.WorkerService/Dockerfile" --force-rm -t nickmartin1ee7/uwuifydiscordbotworkerservice:latest --load .
+    
+    - name: Publish Docker image
+      run: docker push nickmartin1ee7/uwuifydiscordbotworkerservice:latest
+    
+    - name: Trigger production image pull
+      run: curl --location --request POST 'http://localhost:9000/api/webhooks/ed3e9573-7ae6-4fe4-afc6-d73e5cd509bc'

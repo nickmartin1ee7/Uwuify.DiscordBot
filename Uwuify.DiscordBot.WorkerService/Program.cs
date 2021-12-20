@@ -24,9 +24,13 @@ namespace Uwuify.DiscordBot.WorkerService
 #else
                 .AddJsonFile("appsettings.json")
 #endif
+                .AddEnvironmentVariables()
                 .Build();
 
             Log.Logger = new LoggerConfiguration()
+                .WriteTo.Seq("http://seq:80",
+                    apiKey: configuration.GetSection("Serilog")
+                        .GetValue<string>("ApiKey"))
                 .ReadFrom.Configuration(configuration)
                 .CreateLogger();
 
@@ -34,11 +38,11 @@ namespace Uwuify.DiscordBot.WorkerService
             var host = CreateHostBuilder(configuration, args).Build();
 
 #if DEBUG
-            var debugServerString = host.Services.GetService<DiscordSettings>().DebugServerId;
-                if (!Snowflake.TryParse(debugServerString, out var debugServer))
-                {
-                    Log.Logger.Warning("Failed to parse debug server from environment");
-                }
+            var debugServerString = host.Services.GetRequiredService<DiscordSettings>().DebugServerId;
+            if (!Snowflake.TryParse(debugServerString, out var debugServer))
+            {
+                Log.Logger.Warning("Failed to parse debug server from environment");
+            }
 #endif
 
             var slashService = host.Services.GetRequiredService<SlashService>();
@@ -46,18 +50,18 @@ namespace Uwuify.DiscordBot.WorkerService
             var checkSlashSupport = slashService.SupportsSlashCommands();
             if (!checkSlashSupport.IsSuccess)
             {
-                Log.Logger.Warning
-                (
+                Log.Logger.Warning(
                     "The registered commands of the bot don't support slash commands: {Reason}",
-                    checkSlashSupport.Error.Message
-                );
+                    checkSlashSupport.Error!.Message);
             }
             else
             {
                 var updateSlash = await slashService.UpdateSlashCommandsAsync(debugServer);
                 if (!updateSlash.IsSuccess)
                 {
-                    Log.Logger.Warning("Failed to update slash commands: {Reason}", updateSlash.Error.Message);
+                    Log.Logger.Warning(
+                        "Failed to update slash commands: {Reason}", 
+                        updateSlash.Error!.Message);
                 }
             }
 

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Uwuify.Humanizer;
 using Remora.Commands.Groups;
@@ -23,7 +19,9 @@ namespace Uwuify.DiscordBot.WorkerService.Commands
         private readonly FeedbackService _feedbackService;
         private readonly ICommandContext _ctx;
 
-        public UserCommands(ILogger<UserCommands> logger, FeedbackService feedbackService, ICommandContext ctx)
+        public UserCommands(ILogger<UserCommands> logger,
+            FeedbackService feedbackService,
+            ICommandContext ctx)
         {
             _logger = logger;
             _feedbackService = feedbackService;
@@ -33,7 +31,7 @@ namespace Uwuify.DiscordBot.WorkerService.Commands
         [Command("uwuify", "uwu", "owo")]
         [CommandType(ApplicationCommandType.ChatInput)]
         [Description("Convert your message into UwU")]
-        public async Task<IResult> UwuAsync([Description("Uwuify text")]string text)
+        public async Task<IResult> UwuAsync([Description("text")] string text)
         {
             var outputMsg = text.Uwuify();
             _logger.LogDebug("{commandName} result: {msg}", nameof(UwuAsync), outputMsg);
@@ -41,26 +39,32 @@ namespace Uwuify.DiscordBot.WorkerService.Commands
             return Result.FromSuccess();
         }
 
-        [Command("Uwuify It")]
+        [Command("Uwuify This")]
         [CommandType(ApplicationCommandType.Message)]
         public async Task<IResult> UwuSomeoneAsync()
         {
             var c = _ctx as InteractionContext;
-            var outputMsg = "test".Uwuify();
+            
+            var outputMsg = c?.Message.Value.Content.Uwuify();
+
             _logger.LogDebug("{commandName} result: {msg}", nameof(UwuAsync), outputMsg);
-            await _feedbackService.SendContextualEmbedAsync(new Embed("Uwuify", Description: outputMsg), ct: CancellationToken);
+
+            await _feedbackService.SendContextualEmbedAsync(new Embed("Uwuify", Description: outputMsg),
+                ct: CancellationToken);
+
             return Result.FromSuccess();
         }
 
         [Command("feedback")]
         [CommandType(ApplicationCommandType.ChatInput)]
         [Description("Leave feedback for the developer")]
-        public async Task<IResult> FeedbackAsync([Description("Feedback text")]string text)
+        public async Task<IResult> FeedbackAsync([Description("text")] string text)
         {
             _logger.LogInformation("New feedback left by {userName}. Feedback: {feedbackText}", $"{_ctx.User.Username}#{_ctx.User.Discriminator}", text.Trim());
 
             await _feedbackService.SendContextualEmbedAsync(new Embed("Feedback Submitted",
                 Description: "Thank you for your feedback! A developer will review your comments shortly."), ct: CancellationToken);
+
             return Result.FromSuccess();
         }
     }
