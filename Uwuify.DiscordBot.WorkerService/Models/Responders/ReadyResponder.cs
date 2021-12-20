@@ -38,31 +38,33 @@ public class ReadyResponder : IResponder<IReady>
 
     public async Task<Result> RespondAsync(IReady gatewayEvent, CancellationToken ct = new())
     {
+        async Task UpdateGlobalSlashCommands()
+        {
+            var updateResult = await _slashService.UpdateSlashCommandsAsync(ct: ct);
+
+            if (!updateResult.IsSuccess)
+            {
+                _logger.LogWarning("Failed to update application commands globally");
+            }
+        }
+
+        void UpdatePresence()
+        {
+            var updateCommand = new UpdatePresence(ClientStatus.Online, false, null, new IActivity[]
+            {
+                new Activity(_settings.Status, ActivityType.Watching)
+            });
+
+            _discordGatewayClient.SubmitCommand(updateCommand);
+        }
+
         _logger.LogInformation("{botUser} is online for {guildCount} guilds",
             gatewayEvent.User.ToFullUsername(),
             gatewayEvent.Guilds.Count);
 
-        var updateCommand = new UpdatePresence(ClientStatus.Online, false, null, new IActivity[]
-        {
-            new Activity(_settings.Status, ActivityType.Watching)
-        });
+        UpdatePresence();
 
-        _discordGatewayClient.SubmitCommand(updateCommand);
-
-        foreach (var guild in gatewayEvent.Guilds)
-        {
-            var updateResult = await _slashService.UpdateSlashCommandsAsync(guild.GuildID, ct);
-
-            if (!updateResult.IsSuccess)
-            {
-                var guildResult = await _guildApi.GetGuildAsync(guild.GuildID, ct: ct);
-                var guildName = guildResult.Entity.Name;
-
-                _logger.LogWarning("Failed to update application commands on guild: {guild} ({guildId})",
-                    guildName,
-                    guild.GuildID);
-            }
-        }
+        await UpdateGlobalSlashCommands();
 
         return Result.FromSuccess();
     }
