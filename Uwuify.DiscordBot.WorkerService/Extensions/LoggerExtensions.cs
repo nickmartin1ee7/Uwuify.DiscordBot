@@ -9,8 +9,11 @@ namespace Uwuify.DiscordBot.WorkerService.Extensions
     {
         public static async Task LogGuildCountAsync(this ILogger logger, IDiscordRestUserAPI userApi, CancellationToken ct = new())
         {
-            logger.LogInformation("Guild Count {count}",
-                await userApi.GetCurrentUserGuildsAsync(ct: ct));
+            var userGuilds = await userApi.GetCurrentUserGuildsAsync(ct: ct);
+            var count = userGuilds.Entity.Count;
+
+            logger.LogInformation("Guild Count: {count}",
+                count);
         }
     }
 }
