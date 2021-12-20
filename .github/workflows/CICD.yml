@@ -3,7 +3,7 @@ name: CI/CD
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [ main, dev ]
 
 jobs:
   build:
@@ -43,11 +43,21 @@ jobs:
     - name: Pull source code
       uses: actions/checkout@v2
       
-    - name: Build Docker image
+    - name: Build Docker image (Prod)
+      if: ${{ github.ref == 'refs/heads/main' }}
       run: docker buildx build --platform linux/arm64 -f "Uwuify.DiscordBot.WorkerService/Dockerfile" --force-rm -t nickmartin1ee7/uwuifydiscordbotworkerservice:latest --load .
+      
+    - name: Build Docker image (Dev)
+      if: ${{ github.ref == 'refs/heads/dev' }}
+      run: docker buildx build --platform linux/arm64 -f "Uwuify.DiscordBot.WorkerService/Dockerfile" --force-rm -t nickmartin1ee7/uwuifydiscordbotworkerservice:dev --load .
     
     - name: Publish Docker image
       run: docker push nickmartin1ee7/uwuifydiscordbotworkerservice:latest
     
     - name: Trigger production image pull
-      run: curl --location --request POST 'http://localhost:9000/api/webhooks/ed3e9573-7ae6-4fe4-afc6-d73e5cd509bc'
+      if: ${{ github.ref == 'refs/heads/main' }}
+      run: curl --location --request POST '${{ secrets.PROD_WEBHOOK_URI }}'
+   
+    - name: Trigger production image pull
+      if: ${{ github.ref == 'refs/heads/dev' }}
+      run: curl --location --request POST '${{ secrets.DEV_WEBHOOK_URI }}'
