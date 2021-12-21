@@ -4,8 +4,8 @@ services:
   workerservice:
     image: nickmartin1ee7/uwuifydiscordbotworkerservice:dev
     environment:
-      - DiscordSettings__Token=${DISCORD_TOKEN}
-      - Serilog__ApiKey=${SERILOG_APIKEY}
+      - DiscordSettings__Token
+      - Serilog__ApiKey
     depends_on:
         - seq
     deploy:
