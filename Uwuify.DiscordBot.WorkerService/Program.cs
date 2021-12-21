@@ -41,11 +41,6 @@ public static class Program
             .UseSerilog(Log.Logger)
             .ConfigureServices(services =>
             {
-                // Discord
-                services
-                    .AddDiscordCommands(true)
-                    .AddCommandGroup<UserCommands>();
-
                 // Configuration
                 services
                     .AddSingleton(configuration)
@@ -53,6 +48,11 @@ public static class Program
                         .GetSection(nameof(DiscordSettings))
                         .Get<DiscordSettings>());
 
+                // Discord
+                services
+                    .AddDiscordCommands(true)
+                    .AddCommandGroup<UserCommands>();
+                
                 var responderTypes = typeof(Program).Assembly
                     .GetExportedTypes()
                     .Where(t => t.IsResponder());
