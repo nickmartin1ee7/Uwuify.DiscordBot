@@ -85,7 +85,9 @@ public class UserCommands : LoggedCommandGroup<UserCommands>
 
         _logger.LogDebug("{commandName} result: {msg}", nameof(UwuAsync), outputMsg);
 
-        var reply = await _feedbackService.SendContextualEmbedAsync(new Embed($"{c.Member.Value.Nickname.Value} just got UwU-ed!",
+        var targetUser = c.Data.Resolved.Value.Messages.Value.First().Value.Author.Value.ToFullUsername();
+
+        var reply = await _feedbackService.SendContextualEmbedAsync(new Embed($"{targetUser} Just Got UwU-ed!",
                 Description: outputMsg,
                 Colour: new Optional<Color>(Color.PaleVioletRed)),
             ct: CancellationToken);
