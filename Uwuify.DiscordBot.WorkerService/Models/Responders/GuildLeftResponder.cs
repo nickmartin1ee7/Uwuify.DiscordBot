@@ -23,7 +23,8 @@ public class GuildLeftResponder : IResponder<IGuildDelete>
 
     public async Task<Result> RespondAsync(IGuildDelete gatewayEvent, CancellationToken ct = new())
     {
-        if (!ShortTermMemory.KnownGuilds.Contains(gatewayEvent.GuildID))
+        // Unknown guild, or it is a Discord outage
+        if (!ShortTermMemory.KnownGuilds.Contains(gatewayEvent.GuildID) || !gatewayEvent.IsUnavailable.HasValue)
             return Result.FromSuccess();
         
         _logger.LogInformation("Left guild: {guildId}",
