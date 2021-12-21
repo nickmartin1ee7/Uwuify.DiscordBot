@@ -13,15 +13,12 @@ namespace Uwuify.DiscordBot.WorkerService.Models.Responders;
 public class GuildJoinedResponder : IResponder<IGuildCreate>
 {
     private readonly ILogger<GuildJoinedResponder> _logger;
-    private readonly SlashService _slashService;
     private readonly IDiscordRestUserAPI _userApi;
 
     public GuildJoinedResponder(ILogger<GuildJoinedResponder> logger,
-        SlashService slashService,
         IDiscordRestUserAPI userApi)
     {
         _logger = logger;
-        _slashService = slashService;
         _userApi = userApi;
     }
 
