@@ -33,6 +33,14 @@ public class ReadyResponder : IResponder<IReady>
 
     public async Task<Result> RespondAsync(IReady gatewayEvent, CancellationToken ct = new())
     {
+        void RememberInitialGuildIds()
+        {
+            foreach (var gatewayEventGuild in gatewayEvent.Guilds)
+            {
+                ShortTermMemory.KnownGuilds.Add(gatewayEventGuild.GuildID);
+            }
+        }
+
         async Task UpdateGlobalSlashCommands()
         {
             var updateResult = await _slashService.UpdateSlashCommandsAsync(ct: ct);
@@ -53,17 +61,17 @@ public class ReadyResponder : IResponder<IReady>
             _discordGatewayClient.SubmitCommand(updateCommand);
         }
 
-        foreach (var gatewayEventGuild in gatewayEvent.Guilds)
+        if (gatewayEvent.Shard.HasValue)
         {
-            ShortTermMemory.KnownGuilds.Add(gatewayEventGuild.GuildID);
+            _logger.LogInformation("Shard #{shardId} of {shardCount}", gatewayEvent.Shard.Value.ShardID, gatewayEvent.Shard.Value.ShardCount);
         }
 
         _logger.LogInformation("{botUser} is online for {guildCount} guilds",
             gatewayEvent.User.ToFullUsername(),
             gatewayEvent.Guilds.Count);
 
+        RememberInitialGuildIds();
         UpdatePresence();
-
         await UpdateGlobalSlashCommands();
 
         return Result.FromSuccess();

@@ -10,6 +10,9 @@ using Serilog;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using Remora.Discord.API.Gateway.Commands;
+using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Extensions;
 using Uwuify.DiscordBot.WorkerService.Commands;
 using Uwuify.DiscordBot.WorkerService.Models;
@@ -39,35 +42,50 @@ public static class Program
 
         var host = Host.CreateDefaultBuilder(args)
             .UseSerilog(Log.Logger)
-            .ConfigureServices(services =>
+            .ConfigureServices(serviceCollection =>
             {
                 // Configuration
-                services
+                serviceCollection
                     .AddSingleton(configuration)
                     .AddSingleton(configuration
                         .GetSection(nameof(DiscordSettings))
                         .Get<DiscordSettings>());
 
                 // Discord
-                services
+                serviceCollection
                     .AddDiscordCommands(true)
-                    .AddCommandGroup<UserCommands>();
-                
+                    .AddCommandGroup<UserCommands>()
+                    .AddTransient<IOptions<DiscordGatewayClientOptions>>(serviceProvider =>
+                    {
+                        var settings = serviceProvider.GetRequiredService<DiscordSettings>();
+
+                        return settings.ShardId.HasValue && settings.ShardCount is > 1
+                            ? new OptionsWrapper<DiscordGatewayClientOptions>(new DiscordGatewayClientOptions
+                            {
+                                ShardIdentification = new ShardIdentification(
+                                    settings.ShardId.Value,
+                                    settings.ShardCount.Value)
+                            })
+                            : new OptionsWrapper<DiscordGatewayClientOptions>(new DiscordGatewayClientOptions());
+                    });
+
                 var responderTypes = typeof(Program).Assembly
                     .GetExportedTypes()
                     .Where(t => t.IsResponder());
 
                 foreach (var responderType in responderTypes)
                 {
-                    services.AddResponder(responderType);
+                    serviceCollection.AddResponder(responderType);
                 }
             })
             .AddDiscordService(_ => token)
             .Build();
 
-        ValidateSlashCommandSupport(host);
+        ValidateSlashCommandSupport(host.Services.GetRequiredService<SlashService>());
 #if DEBUG
-        await UpdateDebugSlashCommands(host);
+        await UpdateDebugSlashCommands(
+            host.Services.GetRequiredService<DiscordSettings>(),
+            host.Services.GetRequiredService<SlashService>());
 #endif
 
         try
@@ -84,9 +102,8 @@ public static class Program
         }
     }
 
-    private static void ValidateSlashCommandSupport(IHost host)
+    private static void ValidateSlashCommandSupport(SlashService slashService)
     {
-        var slashService = host.Services.GetRequiredService<SlashService>();
         var checkSlashSupport = slashService.SupportsSlashCommands();
         if (!checkSlashSupport.IsSuccess)
         {
@@ -96,17 +113,17 @@ public static class Program
         }
     }
 
-    private static async Task UpdateDebugSlashCommands(IHost host)
+    private static async Task UpdateDebugSlashCommands(DiscordSettings discordSettings, SlashService slashService)
     {
-        var debugServerString = host.Services.GetRequiredService<DiscordSettings>().DebugServerId;
+        var debugServerString = discordSettings.DebugServerId;
 
-        if (!Snowflake.TryParse(debugServerString, out var debugServer))
+        if (!debugServerString.HasValue)
         {
             Log.Logger.Warning("Failed to parse debug server from configuration!");
+            return;
         }
 
-        var slashService = host.Services.GetRequiredService<SlashService>();
-        var updateSlash = await slashService.UpdateSlashCommandsAsync(debugServer);
+        var updateSlash = await slashService.UpdateSlashCommandsAsync(new Snowflake(debugServerString.Value));
         if (!updateSlash.IsSuccess)
         {
             Log.Logger.Warning(
