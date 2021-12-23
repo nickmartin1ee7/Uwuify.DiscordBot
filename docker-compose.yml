@@ -21,5 +21,12 @@ services:
     volumes:
         - seqdata:/data
 
+  uwuify.shardmanager.webapi:
+    container_name: shardmanager
+    image: ${DOCKER_REGISTRY-}uwuifyshardmanagerwebapi
+    build:
+      context: .
+      dockerfile: Uwuify.ShardManager.WebApi/Dockerfile
+
 volumes:
   seqdata:

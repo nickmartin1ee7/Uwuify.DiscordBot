@@ -9,6 +9,7 @@ using Remora.Rest.Core;
 using Serilog;
 using System;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Remora.Discord.API.Gateway.Commands;
@@ -40,6 +41,10 @@ public static class Program
             .GetSection(nameof(DiscordSettings))
             .GetValue<string>("Token");
 
+        var shardCount = configuration.GetValue<int>("ShardCount");
+
+        var (shardResponse, shardId) = await TryGetShardIdAsync();
+
         var host = Host.CreateDefaultBuilder(args)
             .UseSerilog(Log.Logger)
             .ConfigureServices(serviceCollection =>
@@ -55,19 +60,14 @@ public static class Program
                 serviceCollection
                     .AddDiscordCommands(true)
                     .AddCommandGroup<UserCommands>()
-                    .AddTransient<IOptions<DiscordGatewayClientOptions>>(serviceProvider =>
-                    {
-                        var settings = serviceProvider.GetRequiredService<DiscordSettings>();
-
-                        return settings.ShardId.HasValue && settings.ShardCount is > 1
-                            ? new OptionsWrapper<DiscordGatewayClientOptions>(new DiscordGatewayClientOptions
-                            {
-                                ShardIdentification = new ShardIdentification(
-                                    settings.ShardId.Value,
-                                    settings.ShardCount.Value)
-                            })
-                            : new OptionsWrapper<DiscordGatewayClientOptions>(new DiscordGatewayClientOptions());
-                    });
+                    .AddTransient<IOptions<DiscordGatewayClientOptions>>(_ => shardResponse.IsSuccessStatusCode
+                        ? new OptionsWrapper<DiscordGatewayClientOptions>(new DiscordGatewayClientOptions
+                        {
+                            ShardIdentification = new ShardIdentification(
+                                shardId,
+                                shardCount)
+                        })
+                        : new OptionsWrapper<DiscordGatewayClientOptions>(new DiscordGatewayClientOptions()));
 
                 var responderTypes = typeof(Program).Assembly
                     .GetExportedTypes()
@@ -100,6 +100,14 @@ public static class Program
         {
             Log.CloseAndFlush();
         }
+    }
+
+    private static async Task<(HttpResponseMessage shardResponse, int shardId)> TryGetShardIdAsync()
+    {
+        using var shardHttpClient = new HttpClient();
+        var shardResponse = await shardHttpClient.GetAsync("http://shardmanager/requestId");
+        _ = int.TryParse(await shardResponse.Content.ReadAsStringAsync(), out var shardId);
+        return (shardResponse, shardId);
     }
 
     private static void ValidateSlashCommandSupport(SlashService slashService)
