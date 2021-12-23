@@ -17,6 +17,7 @@ services:
         parallelism: 1
       restart_policy:
         condition: any
+        max_attempts: 2
 
   seq:
     image: datalust/seq:2021.3.6681
@@ -33,7 +34,6 @@ services:
         parallelism: 1
       restart_policy:
         condition: any
-        max_attempts: 2
 
   shardmanager:
     image: nickmartin1ee7/uwuifyshardmanagerwebapi:dev
