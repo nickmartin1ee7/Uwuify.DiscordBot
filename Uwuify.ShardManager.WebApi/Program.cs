@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
 using Uwuify.ShardManager.WebApi;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,11 +8,8 @@ builder.Configuration.AddEnvironmentVariables();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 var shardManager = new ShardManager(app.Configuration.GetValue<int>("ShardCount"));
 
@@ -33,5 +29,17 @@ app.MapGet("/requestId", () =>
         }
     })
 .WithName("GetRequestId");
+
+app.MapGet("/currentShards", shardManager.GetCurrentShards)
+    .WithName("GetCurrentShards");
+
+app.MapGet("/currentShardCount", shardManager.GetCurrentShardCount)
+    .WithName("GetCurrentShardCount");
+
+app.MapPost("/growShardCount", (int shardCount) => shardManager.GrowShardCount(shardCount))
+    .WithName("PostGrowShardCount");
+
+app.MapPost("/resetShards", () => shardManager.ResetShards())
+    .WithName("PostResetShards");
 
 app.Run();

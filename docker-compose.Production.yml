@@ -6,7 +6,6 @@ services:
     environment:
       - DiscordSettings__Token
       - Serilog__ApiKey
-      - ShardCount
     depends_on:
         - seq
         - uwuify.shardmanager.webapi
@@ -17,7 +16,7 @@ services:
         parallelism: 1
       restart_policy:
         condition: any
-        max_attempts: 2
+        max_attempts: 1
 
   seq:
     image: datalust/seq:2021.3.6681
@@ -39,6 +38,8 @@ services:
     image: nickmartin1ee7/uwuifyshardmanagerwebapi:latest
     environment:
         - ShardCount
+    ports:
+        - 8081:80
     deploy:
       replicas: 1
       mode: replicated

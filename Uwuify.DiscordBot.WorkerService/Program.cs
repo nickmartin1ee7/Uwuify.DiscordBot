@@ -11,11 +11,13 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Remora.Discord.API.Gateway.Commands;
 using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Extensions;
+using Uwuify.ClassLibrary.Models;
 using Uwuify.DiscordBot.WorkerService.Commands;
 using Uwuify.DiscordBot.WorkerService.Models;
 
@@ -42,15 +44,8 @@ public static class Program
             .GetSection(nameof(DiscordSettings))
             .GetValue<string>("Token");
 
-        var shardCount = configuration.GetValue<int>("ShardCount");
-
-        var shouldShard = false;
-        var shardId = 0;
-        if (shardCount > 1)
-        {
-            (var shardResponse, shardId) = await TryGetShardIdAsync();
-            shouldShard = shardResponse.IsSuccessStatusCode;
-        }
+        var (shardResponse, shardModel) = await DecideShardingAsync();
+        var shouldShard = shardResponse.IsSuccessStatusCode;
 
         var host = Host.CreateDefaultBuilder(args)
             .UseSerilog(Log.Logger)
@@ -71,8 +66,8 @@ public static class Program
                         ? new OptionsWrapper<DiscordGatewayClientOptions>(new DiscordGatewayClientOptions
                         {
                             ShardIdentification = new ShardIdentification(
-                                shardId,
-                                shardCount)
+                                shardModel.ShardId,
+                                shardModel.ShardCount)
                         })
                         : new OptionsWrapper<DiscordGatewayClientOptions>(new DiscordGatewayClientOptions()));
 
@@ -109,7 +104,7 @@ public static class Program
         }
     }
 
-    private static async Task<(HttpResponseMessage shardResponse, int shardId)> TryGetShardIdAsync()
+    private static async Task<(HttpResponseMessage shardResponse, ShardModel shardModel)> DecideShardingAsync()
     {
         using var shardHttpClient = new HttpClient();
         var shardResponse = await shardHttpClient.GetAsync("http://shardmanager/requestId");
@@ -125,8 +120,9 @@ public static class Program
                 Environment.Exit(0);
                 break;
             default:
-                _ = int.TryParse(await shardResponse.Content.ReadAsStringAsync(), out var shardId);
-                return (shardResponse, shardId);
+                var content = await shardResponse.Content.ReadAsStringAsync();
+                var shardModel = JsonSerializer.Deserialize<ShardModel>(content, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                return (shardResponse, shardModel);
         }
 
         return default;

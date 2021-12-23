@@ -1,18 +1,27 @@
 using System.Collections.Concurrent;
+using Uwuify.ClassLibrary.Models;
 
 namespace Uwuify.ShardManager.WebApi;
 
 public class ShardManager
 {
     private readonly ConcurrentStack<int> _shardStack = new();
-    private readonly int _maxShards;
+    private int _maxShards;
 
     public ShardManager(int maxShards)
     {
         _maxShards = maxShards;
     }
 
-    public int GetNextShard()
+    public int GetCurrentShards()
+    {
+        _ = _shardStack.TryPeek(out var shardCount);
+        return shardCount;
+    }
+
+    public int GetCurrentShardCount() => _maxShards;
+
+    public ShardModel GetNextShard()
     {
         if (_maxShards <= 0)
             throw new ShardingNotAllowedException();
@@ -21,7 +30,12 @@ public class ShardManager
             shard++;
 
         _shardStack.Push(shard); // 0
-        return ValidateShard(shard);
+
+        return new ShardModel
+        {
+            ShardId = ValidateShard(shard),
+            ShardCount = _maxShards
+        };
     }
 
     // Next shard cannot be equal to or greater than max shard count
@@ -31,6 +45,16 @@ public class ShardManager
             throw new OutOfAvailableShardsException();
 
         return newShard;
+    }
+
+    public void GrowShardCount(int shardCount)
+    {
+        _maxShards = shardCount;
+    }
+
+    public void ResetShards()
+    {
+        _shardStack.Clear();
     }
 }
 

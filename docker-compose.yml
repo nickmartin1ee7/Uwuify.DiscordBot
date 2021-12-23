@@ -9,7 +9,6 @@ services:
     environment:
           - DiscordSettings__Token
           - Serilog__ApiKey
-          - ShardCount
     depends_on:
         - seq
         - uwuify.shardmanager.webapi
@@ -28,6 +27,8 @@ services:
     image: ${DOCKER_REGISTRY-}uwuifyshardmanagerwebapi
     environment:
         - ShardCount
+    ports:
+        - 8081:80
     build:
       context: .
       dockerfile: Uwuify.ShardManager.WebApi/Dockerfile
