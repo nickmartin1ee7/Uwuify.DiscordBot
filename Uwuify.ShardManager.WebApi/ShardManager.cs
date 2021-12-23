@@ -14,21 +14,29 @@ public class ShardManager
 
     public int GetNextShard()
     {
-        if (_shardStack.TryPeek(out var lastShard))
-        {
-            if (lastShard >= _maxShards - 1) // Next shard cannot be equal to or greater than max shard count
-                throw new OutOfAvailableShardsException();
+        if (_maxShards <= 0)
+            throw new OutOfAvailableShardsException("No shards are allowed");
 
-            lastShard++;
-            _shardStack.Push(lastShard);
-            return lastShard;
-        }
+        if (_shardStack.TryPeek(out var shard))
+            shard++;
 
-        _shardStack.Push(lastShard); // 0
-        return lastShard;
+        _shardStack.Push(shard); // 0
+        return ValidateShard(shard);
+    }
+
+    // Next shard cannot be equal to or greater than max shard count
+    private int ValidateShard(int newShard)
+    {
+        if (newShard >= _maxShards)
+            throw new OutOfAvailableShardsException($"Out of available shards ({_maxShards})");
+
+        return newShard;
     }
 }
 
 public class OutOfAvailableShardsException : Exception
 {
+    public OutOfAvailableShardsException(string message) : base(message)
+    {
+    }
 }

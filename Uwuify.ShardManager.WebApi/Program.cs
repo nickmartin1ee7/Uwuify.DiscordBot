@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Uwuify.ShardManager.WebApi;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,7 +17,17 @@ if (app.Environment.IsDevelopment())
 
 var shardManager = new ShardManager(app.Configuration.GetValue<int>("ShardCount"));
 
-app.MapGet("/requestId", shardManager.GetNextShard)
+app.MapGet("/requestId", () =>
+    {
+        try
+        {
+            return Results.Ok(shardManager.GetNextShard());
+        }
+        catch (OutOfAvailableShardsException e)
+        {
+            return Results.BadRequest(e.Message);
+        }
+    })
 .WithName("GetRequestId");
 
 app.Run();

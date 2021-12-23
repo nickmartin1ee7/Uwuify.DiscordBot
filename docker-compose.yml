@@ -9,8 +9,10 @@ services:
     environment:
           - DiscordSettings__Token
           - Serilog__ApiKey
+          - ShardCount
     depends_on:
         - seq
+        - uwuify.shardmanager.webapi
 
   seq:
     image: datalust/seq:2021.3.6681
