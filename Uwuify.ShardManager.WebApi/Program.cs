@@ -20,10 +20,6 @@ app.MapGet("/requestId", () =>
         {
             return Results.Ok(shardManager.GetNextShard());
         }
-        catch (ShardingNotRecommendedException)
-        {
-            return Results.NotFound();
-        }
         catch (OutOfAvailableShardsException)
         {
             return Results.Conflict();

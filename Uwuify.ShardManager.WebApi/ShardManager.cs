@@ -26,9 +26,6 @@ public class ShardManager
         if (_maxShards <= 0)
             throw new ShardingNotAllowedException();
 
-        if (_maxShards == 1)
-            throw new ShardingNotRecommendedException();
-
         if (_shardStack.TryPeek(out var shard))
             shard++;
 
@@ -59,10 +56,6 @@ public class ShardManager
     {
         _shardStack.Clear();
     }
-}
-
-public class ShardingNotRecommendedException : Exception
-{
 }
 
 public class ShardingNotAllowedException : Exception

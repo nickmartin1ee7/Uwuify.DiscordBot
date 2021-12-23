@@ -111,8 +111,6 @@ public static class Program
 
         switch (shardResponse.StatusCode)
         {
-            case HttpStatusCode.NotFound:
-                return (shardResponse, null);
             case HttpStatusCode.Conflict:
                 Log.Logger.Warning("No more shards available for client");
                 Environment.Exit(0);
