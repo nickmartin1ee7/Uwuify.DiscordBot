@@ -105,7 +105,7 @@ public static class Program
     private static async Task<(HttpResponseMessage shardResponse, int shardId)> TryGetShardIdAsync()
     {
         using var shardHttpClient = new HttpClient();
-        var shardResponse = await shardHttpClient.GetAsync("http://uwuify.shardmanager.webapi/requestId");
+        var shardResponse = await shardHttpClient.GetAsync("http://shardmanager/requestId");
         _ = int.TryParse(await shardResponse.Content.ReadAsStringAsync(), out var shardId);
         return (shardResponse, shardId);
     }

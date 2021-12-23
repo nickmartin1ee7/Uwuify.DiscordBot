@@ -24,6 +24,7 @@ services:
         - seqdata:/data
 
   uwuify.shardmanager.webapi:
+    container_name: shardmanager
     image: ${DOCKER_REGISTRY-}uwuifyshardmanagerwebapi
     environment:
         - ShardCount

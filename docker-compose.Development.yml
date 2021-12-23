@@ -34,7 +34,7 @@ services:
       restart_policy:
         condition: any
 
-  uwuify.shardmanager.webapi:
+  shardmanager:
     image: nickmartin1ee7/uwuifyshardmanagerwebapi:dev
     environment:
         - ShardCount
