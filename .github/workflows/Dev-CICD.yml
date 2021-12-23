@@ -43,14 +43,22 @@ jobs:
     - name: Pull Source Code
       uses: actions/checkout@v2
       
-    - name: Build Docker Image
+    - name: Build Docker Image (DiscordBot)
       if: ${{ github.ref == 'refs/heads/dev' }}
       run: docker buildx build --platform linux/arm64 -f "Uwuify.DiscordBot.WorkerService/Dockerfile" --force-rm -t nickmartin1ee7/uwuifydiscordbotworkerservice:dev --load .
     
-    - name: Publish Docker Image
+    - name: Publish Docker Image (DiscordBot)
       if: ${{ github.ref == 'refs/heads/dev' }}
       run: docker push nickmartin1ee7/uwuifydiscordbotworkerservice:dev
+          
+    - name: Build Docker Image (ShardManager)
+      if: ${{ github.ref == 'refs/heads/dev' }}
+      run: docker buildx build --platform linux/arm64 -f "Uwuify.ShardManager.WebApi/Dockerfile" --force-rm -t nickmartin1ee7/uwuifyshardmanagerwebapi:dev --load .
     
+    - name: Publish Docker Image (ShardManager)
+      if: ${{ github.ref == 'refs/heads/dev' }}
+      run: docker push nickmartin1ee7/uwuifyshardmanagerwebapi:dev
+
   deployment:
     runs-on: self-hosted
     needs: publish
