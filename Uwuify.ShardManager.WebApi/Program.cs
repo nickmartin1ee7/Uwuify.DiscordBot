@@ -1,15 +1,20 @@
+using Swashbuckle.AspNetCore.SwaggerUI;
 using Uwuify.ShardManager.WebApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 builder.Configuration.AddEnvironmentVariables();
 
 var app = builder.Build();
 
 app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerUI(new SwaggerUIOptions
+{
+    RoutePrefix = ""
+});
 
 var shardManager = new ShardManager(app.Configuration.GetValue<int>("ShardCount"));
 
