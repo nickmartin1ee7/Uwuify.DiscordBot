@@ -35,7 +35,6 @@ services:
         condition: any
 
   uwuify.shardmanager.webapi:
-    container_name: shardmanager
     image: nickmartin1ee7/uwuifyshardmanagerwebapi:dev
     environment:
         - ShardCount
