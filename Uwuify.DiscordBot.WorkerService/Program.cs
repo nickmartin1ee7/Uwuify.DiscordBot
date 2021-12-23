@@ -43,7 +43,13 @@ public static class Program
 
         var shardCount = configuration.GetValue<int>("ShardCount");
 
-        var (shardResponse, shardId) = await TryGetShardIdAsync();
+        var shouldShard = false;
+        var shardId = 0;
+        if (shardCount > 1)
+        {
+            (var shardResponse, shardId) = await TryGetShardIdAsync();
+            shouldShard = shardResponse.IsSuccessStatusCode;
+        }
 
         var host = Host.CreateDefaultBuilder(args)
             .UseSerilog(Log.Logger)
@@ -60,7 +66,7 @@ public static class Program
                 serviceCollection
                     .AddDiscordCommands(true)
                     .AddCommandGroup<UserCommands>()
-                    .AddTransient<IOptions<DiscordGatewayClientOptions>>(_ => shardResponse.IsSuccessStatusCode
+                    .AddTransient<IOptions<DiscordGatewayClientOptions>>(_ => shouldShard
                         ? new OptionsWrapper<DiscordGatewayClientOptions>(new DiscordGatewayClientOptions
                         {
                             ShardIdentification = new ShardIdentification(
