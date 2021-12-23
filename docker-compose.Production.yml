@@ -6,8 +6,10 @@ services:
     environment:
       - DiscordSettings__Token
       - Serilog__ApiKey
+      - ShardCount
     depends_on:
         - seq
+        - uwuify.shardmanager.webapi
     deploy:
       replicas: 1
       mode: replicated
@@ -24,6 +26,19 @@ services:
         - ACCEPT_EULA=Y
     volumes:
         - seqdata:/data
+    deploy:
+      replicas: 1
+      mode: replicated
+      update_config:
+        parallelism: 1
+      restart_policy:
+        condition: any
+
+  uwuify.shardmanager.webapi:
+    container_name: shardmanager
+    image: nickmartin1ee7/uwuifyshardmanagerwebapi:latest
+    environment:
+        - ShardCount
     deploy:
       replicas: 1
       mode: replicated
