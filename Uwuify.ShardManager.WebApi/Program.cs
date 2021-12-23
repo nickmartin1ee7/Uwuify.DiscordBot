@@ -1,4 +1,3 @@
-using System.Net;
 using Uwuify.ShardManager.WebApi;
 
 var builder = WebApplication.CreateBuilder(args);
