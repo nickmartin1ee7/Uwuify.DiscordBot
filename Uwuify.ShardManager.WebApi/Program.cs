@@ -23,9 +23,13 @@ app.MapGet("/requestId", () =>
         {
             return Results.Ok(shardManager.GetNextShard());
         }
-        catch (OutOfAvailableShardsException e)
+        catch (OutOfAvailableShardsException)
         {
-            return Results.BadRequest(e.Message);
+            return Results.Conflict();
+        }
+        catch (ShardingNotAllowedException)
+        {
+            return Results.BadRequest();
         }
     })
 .WithName("GetRequestId");

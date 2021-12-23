@@ -9,6 +9,7 @@ using Remora.Rest.Core;
 using Serilog;
 using System;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
@@ -112,8 +113,17 @@ public static class Program
     {
         using var shardHttpClient = new HttpClient();
         var shardResponse = await shardHttpClient.GetAsync("http://shardmanager/requestId");
-        _ = int.TryParse(await shardResponse.Content.ReadAsStringAsync(), out var shardId);
-        return (shardResponse, shardId);
+
+        switch (shardResponse.StatusCode)
+        {
+            case HttpStatusCode.Conflict:
+                throw new ApplicationException("No more shards available for client");
+            case HttpStatusCode.BadRequest:
+                throw new ApplicationException("Environment not configured for sharding");
+            default:
+                _ = int.TryParse(await shardResponse.Content.ReadAsStringAsync(), out var shardId);
+                return (shardResponse, shardId);
+        }
     }
 
     private static void ValidateSlashCommandSupport(SlashService slashService)
