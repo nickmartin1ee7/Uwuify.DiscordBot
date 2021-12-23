@@ -1,3 +1,4 @@
+using System.Net;
 using Uwuify.ShardManager.WebApi;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +20,10 @@ app.MapGet("/requestId", () =>
         try
         {
             return Results.Ok(shardManager.GetNextShard());
+        }
+        catch (ShardingNotRecommendedException)
+        {
+            return Results.NotFound();
         }
         catch (OutOfAvailableShardsException)
         {
