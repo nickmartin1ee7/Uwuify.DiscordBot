@@ -39,7 +39,7 @@ services:
     environment:
         - ShardCount
     ports:
-        - 8081:80
+        - 8086:80
     deploy:
       replicas: 1
       mode: replicated
