@@ -117,13 +117,19 @@ public static class Program
         switch (shardResponse.StatusCode)
         {
             case HttpStatusCode.Conflict:
-                throw new ApplicationException("No more shards available for client");
+                Log.Logger.Warning("No more shards available for client");
+                Environment.Exit(0);
+                break;
             case HttpStatusCode.BadRequest:
-                throw new ApplicationException("Environment not configured for sharding");
+                Log.Logger.Warning("Environment not configured for sharding");
+                Environment.Exit(0);
+                break;
             default:
                 _ = int.TryParse(await shardResponse.Content.ReadAsStringAsync(), out var shardId);
                 return (shardResponse, shardId);
         }
+
+        return default;
     }
 
     private static void ValidateSlashCommandSupport(SlashService slashService)
