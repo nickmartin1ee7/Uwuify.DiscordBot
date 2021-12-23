@@ -8,7 +8,7 @@ services:
       - Serilog__ApiKey
     depends_on:
         - seq
-        - shardmanager
+        - uwuify.shardmanager.webapi
     deploy:
       replicas: 1
       mode: replicated
