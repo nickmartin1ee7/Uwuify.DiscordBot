@@ -118,7 +118,21 @@ public static class Program
     private static async Task<(HttpResponseMessage shardResponse, ShardGroup shardGroup)> DecideShardingAsync(int internalShardCount = 4)
     {
         using var shardHttpClient = new HttpClient();
-        var shardResponse = await shardHttpClient.GetAsync($"http://shardmanager/requestShardGroup?groupSize={internalShardCount}");
+        HttpResponseMessage shardResponse = null;
+        for (int i = 0; i < 2; i++)
+        {
+            try
+            {
+                shardResponse =
+                    await shardHttpClient.GetAsync(
+                        $"http://shardmanager/requestShardGroup?groupSize={internalShardCount}");
+                break;
+            }
+            catch (HttpRequestException)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(2));
+            }
+        }
 
         switch (shardResponse.StatusCode)
         {

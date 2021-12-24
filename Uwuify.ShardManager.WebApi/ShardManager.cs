@@ -26,9 +26,10 @@ public class ShardManager
 
         // At least one to give
         int startingShard = lastShardId + 1;
-        for (int i = 0; i < groupSize && shardIds.LastOrDefault() + 1 < _maxShards; i++)
+        for (int i = 0; i < groupSize && lastShardId + 1 < _maxShards; i++)
         {
             shardIds.Add(startingShard + i);
+            lastShardId = shardIds.Max();
         }
 
         var shardGroup = new ShardGroup((!_shardGroups.Any() ? -1 : _shardGroups.Keys.Max()) + 1, _maxShards, shardIds);
