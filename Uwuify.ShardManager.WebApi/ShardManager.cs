@@ -55,10 +55,10 @@ public class ShardManager
     public void SetMaxShards(int newShardCount)
     {
         _maxShards = newShardCount;
-        UnassignAllShardGroup();
+        UnassignAllShardGroups();
     }
 
-    public void UnassignAllShardGroup()
+    public void UnassignAllShardGroups()
     {
         _shardGroups.Clear();
     }

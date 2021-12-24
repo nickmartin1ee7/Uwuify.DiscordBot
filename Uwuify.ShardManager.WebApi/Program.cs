@@ -33,8 +33,8 @@ app.MapGet("/requestShardGroup", (int groupSize) =>
 app.MapPost("/unassignShardGroup", (int groupId) => shardManager.UnassignShardGroup(groupId))
     .WithName("PostResetShards");
 
-app.MapPost("/unassignAllShardGroup", (int groupId) => shardManager.UnassignAllShardGroup())
-    .WithName("PostUnassignAllShardGroup");
+app.MapPost("/unassignAllShardGroups", (int groupId) => shardManager.UnassignAllShardGroups())
+    .WithName("PostUnassignAllShardGroups");
 
 app.MapGet("/shardGroups", () => shardManager.GetShardGroups())
     .WithName("GetShardGroups");
