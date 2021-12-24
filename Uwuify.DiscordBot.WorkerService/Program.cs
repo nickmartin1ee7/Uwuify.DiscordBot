@@ -8,6 +8,7 @@ using Remora.Discord.Hosting.Extensions;
 using Remora.Rest.Core;
 using Serilog;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -44,55 +45,65 @@ public static class Program
             .GetSection(nameof(DiscordSettings))
             .GetValue<string>("Token");
 
-        var (shardResponse, shardModel) = await DecideShardingAsync();
+        var (shardResponse, shardGroup) = await DecideShardingAsync();
         var shouldShard = shardResponse.IsSuccessStatusCode;
 
-        var host = Host.CreateDefaultBuilder(args)
-            .UseSerilog(Log.Logger)
-            .ConfigureServices(serviceCollection =>
-            {
-                // Configuration
-                serviceCollection
-                    .AddSingleton(configuration)
-                    .AddSingleton(configuration
-                        .GetSection(nameof(DiscordSettings))
-                        .Get<DiscordSettings>());
-
-                // Discord
-                serviceCollection
-                    .AddDiscordCommands(true)
-                    .AddCommandGroup<UserCommands>()
-                    .AddTransient<IOptions<DiscordGatewayClientOptions>>(_ => shouldShard
-                        ? new OptionsWrapper<DiscordGatewayClientOptions>(new DiscordGatewayClientOptions
-                        {
-                            ShardIdentification = new ShardIdentification(
-                                shardModel.ShardId,
-                                shardModel.ShardCount)
-                        })
-                        : new OptionsWrapper<DiscordGatewayClientOptions>(new DiscordGatewayClientOptions()));
-
-                var responderTypes = typeof(Program).Assembly
-                    .GetExportedTypes()
-                    .Where(t => t.IsResponder());
-
-                foreach (var responderType in responderTypes)
+        var shardClients = new List<IHost>();
+        foreach (var shardId in shardGroup.ShardIds)
+        {
+            var host = Host.CreateDefaultBuilder(args)
+                .UseSerilog(Log.Logger)
+                .ConfigureServices(serviceCollection =>
                 {
-                    serviceCollection.AddResponder(responderType);
-                }
-            })
-            .AddDiscordService(_ => token)
-            .Build();
+                    // Configuration
+                    serviceCollection
+                        .AddSingleton(configuration)
+                        .AddSingleton(configuration
+                            .GetSection(nameof(DiscordSettings))
+                            .Get<DiscordSettings>());
 
-        ValidateSlashCommandSupport(host.Services.GetRequiredService<SlashService>());
-#if DEBUG
-        await UpdateDebugSlashCommands(
-            host.Services.GetRequiredService<DiscordSettings>(),
-            host.Services.GetRequiredService<SlashService>());
-#endif
+                    // Discord
+                    serviceCollection
+                        .AddDiscordCommands(true)
+                        .AddCommandGroup<UserCommands>()
+                        .AddTransient<IOptions<DiscordGatewayClientOptions>>(_ => shouldShard
+                            ? new OptionsWrapper<DiscordGatewayClientOptions>(new DiscordGatewayClientOptions
+                            {
+                                ShardIdentification = new ShardIdentification(
+                                    shardId,
+                                    shardGroup.MaxShards)
+                            })
+                            : new OptionsWrapper<DiscordGatewayClientOptions>(new DiscordGatewayClientOptions()));
 
+                    var responderTypes = typeof(Program).Assembly
+                        .GetExportedTypes()
+                        .Where(t => t.IsResponder());
+
+                    foreach (var responderType in responderTypes)
+                    {
+                        serviceCollection.AddResponder(responderType);
+                    }
+                })
+                .AddDiscordService(_ => token)
+                .Build();
+            
+            shardClients.Add(host);
+        }
+        
         try
         {
-            await host.RunAsync();
+            int delay = 0;
+            await Task.WhenAll(shardClients.Select(async shardClient => {
+                ValidateSlashCommandSupport(shardClient.Services.GetRequiredService<SlashService>());
+#if DEBUG
+                await UpdateDebugSlashCommands(
+                    shardClient.Services.GetRequiredService<DiscordSettings>(),
+                    shardClient.Services.GetRequiredService<SlashService>());
+#endif
+                await Task.Delay(TimeSpan.FromSeconds(6 * delay));
+                delay++;
+                await shardClient.RunAsync();
+            }));
         }
         catch (Exception e)
         {
@@ -104,10 +115,10 @@ public static class Program
         }
     }
 
-    private static async Task<(HttpResponseMessage shardResponse, ShardModel shardModel)> DecideShardingAsync()
+    private static async Task<(HttpResponseMessage shardResponse, ShardGroup shardGroup)> DecideShardingAsync(int internalShardCount = 4)
     {
         using var shardHttpClient = new HttpClient();
-        var shardResponse = await shardHttpClient.GetAsync("http://shardmanager/requestId");
+        var shardResponse = await shardHttpClient.GetAsync($"http://shardmanager/requestShardGroup?groupSize={internalShardCount}");
 
         switch (shardResponse.StatusCode)
         {
@@ -115,14 +126,10 @@ public static class Program
                 Log.Logger.Warning("No more shards available for client");
                 Environment.Exit(0);
                 break;
-            case HttpStatusCode.BadRequest:
-                Log.Logger.Warning("Environment not configured for sharding");
-                Environment.Exit(0);
-                break;
             default:
                 var content = await shardResponse.Content.ReadAsStringAsync();
-                var shardModel = JsonSerializer.Deserialize<ShardModel>(content, new JsonSerializerOptions(JsonSerializerDefaults.Web));
-                return (shardResponse, shardModel);
+                var shardGroup = JsonSerializer.Deserialize<ShardGroup>(content, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                return (shardResponse, shardGroup);
         }
 
         return default;

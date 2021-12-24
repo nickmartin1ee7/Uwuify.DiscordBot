@@ -5,61 +5,54 @@ namespace Uwuify.ShardManager.WebApi;
 
 public class ShardManager
 {
-    private readonly ConcurrentStack<int> _shardStack = new();
+    private readonly ConcurrentDictionary<int, ShardGroup> _shardGroups = new();
     private int _maxShards;
 
     public ShardManager(int maxShards)
     {
+        if (maxShards <= 0)
+            throw new ArgumentOutOfRangeException(nameof(maxShards));
+
         _maxShards = maxShards;
     }
 
-    public int GetCurrentShards()
+    public ShardGroup? RequestShardGroup(int groupSize)
     {
-        _ = _shardStack.TryPeek(out var shardCount);
-        return shardCount;
-    }
+        var lastShardId = !_shardGroups.Any()
+            ? -1
+            : _shardGroups.Values.Max(v => v.ShardIds.Max());
 
-    public int GetCurrentShardCount() => _maxShards;
+        var shardIds = new List<int>();
 
-    public ShardModel GetNextShard()
-    {
-        if (_maxShards <= 0)
-            throw new ShardingNotAllowedException();
-
-        if (_shardStack.TryPeek(out var shard))
-            shard++;
-
-        _shardStack.Push(shard); // 0
-
-        return new ShardModel
+        // At least one to give
+        int startingShard = lastShardId + 1;
+        for (int i = 0; i < groupSize && shardIds.LastOrDefault() + 1 < _maxShards; i++)
         {
-            ShardId = ValidateShard(shard),
-            ShardCount = _maxShards
-        };
+            shardIds.Add(startingShard + i);
+        }
+
+        var shardGroup = new ShardGroup((!_shardGroups.Any() ? -1 : _shardGroups.Keys.Max()) + 1, _maxShards, shardIds);
+
+        if (shardGroup.ShardIds.Any())
+        {
+            _shardGroups.TryAdd(shardGroup.GroupId, shardGroup);
+            return shardGroup;
+        }
+
+        throw new OutOfAvailableShardsException();
     }
 
-    // Next shard cannot be equal to or greater than max shard count
-    private int ValidateShard(int newShard)
-    {
-        if (newShard >= _maxShards)
-            throw new OutOfAvailableShardsException();
+    public bool UnassignShardGroup(int groupId) =>
+        _shardGroups.Remove(groupId, out _);
 
-        return newShard;
-    }
+    public ShardGroup[] GetShardGroups() =>
+        _shardGroups.Select(g => g.Value).ToArray();
 
-    public void GrowShardCount(int shardCount)
-    {
-        _maxShards = shardCount;
-    }
+    public int GetMaxShards() =>
+        _maxShards;
 
-    public void ResetShards()
-    {
-        _shardStack.Clear();
-    }
-}
-
-public class ShardingNotAllowedException : Exception
-{
+    public void SetMaxShards(int newShardCount) =>
+        _maxShards = newShardCount;
 }
 
 public class OutOfAvailableShardsException : Exception

@@ -12,35 +12,34 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-var shardManager = new ShardManager(app.Configuration.GetValue<int>("ShardCount"));
+var originalMaxShards = app.Configuration
+    .GetValue<int>("ShardCount");
 
-app.MapGet("/requestId", () =>
+var shardManager = new ShardManager(originalMaxShards);
+
+app.MapGet("/requestShardGroup", (int groupSize) =>
     {
         try
         {
-            return Results.Ok(shardManager.GetNextShard());
+            return Results.Ok(shardManager.RequestShardGroup(groupSize));
         }
         catch (OutOfAvailableShardsException)
         {
             return Results.Conflict();
         }
-        catch (ShardingNotAllowedException)
-        {
-            return Results.BadRequest();
-        }
     })
-.WithName("GetRequestId");
+.WithName("GetRequestShardGroup");
 
-app.MapGet("/currentShards", shardManager.GetCurrentShards)
-    .WithName("GetCurrentShards");
-
-app.MapGet("/currentShardCount", shardManager.GetCurrentShardCount)
-    .WithName("GetCurrentShardCount");
-
-app.MapPost("/growShardCount", (int shardCount) => shardManager.GrowShardCount(shardCount))
-    .WithName("PostGrowShardCount");
-
-app.MapPost("/resetShards", () => shardManager.ResetShards())
+app.MapPost("/unassignShardGroup", (int groupId) => shardManager.UnassignShardGroup(groupId))
     .WithName("PostResetShards");
+
+app.MapGet("/getShardGroups", () => shardManager.GetShardGroups())
+    .WithName("GetShardGroups");
+
+app.MapGet("/maxShards", () => shardManager.GetMaxShards())
+    .WithName("GetMaxShards");
+
+app.MapPost("/setMaxShards", (int newShardCount) => shardManager.SetMaxShards(newShardCount))
+    .WithName("SetMaxShards");
 
 app.Run();
