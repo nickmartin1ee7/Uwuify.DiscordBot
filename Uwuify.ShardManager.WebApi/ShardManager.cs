@@ -52,8 +52,11 @@ public class ShardManager
     public int GetMaxShards() =>
         _maxShards;
 
-    public void SetMaxShards(int newShardCount) =>
+    public void SetMaxShards(int newShardCount)
+    {
         _maxShards = newShardCount;
+        UnassignAllShardGroup();
+    }
 
     public void UnassignAllShardGroup()
     {
