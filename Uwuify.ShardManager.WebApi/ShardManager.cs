@@ -54,6 +54,11 @@ public class ShardManager
 
     public void SetMaxShards(int newShardCount) =>
         _maxShards = newShardCount;
+
+    public void UnassignAllShardGroup()
+    {
+        _shardGroups.Clear();
+    }
 }
 
 public class OutOfAvailableShardsException : Exception

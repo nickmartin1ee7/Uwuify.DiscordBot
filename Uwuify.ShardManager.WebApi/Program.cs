@@ -33,13 +33,16 @@ app.MapGet("/requestShardGroup", (int groupSize) =>
 app.MapPost("/unassignShardGroup", (int groupId) => shardManager.UnassignShardGroup(groupId))
     .WithName("PostResetShards");
 
-app.MapGet("/getShardGroups", () => shardManager.GetShardGroups())
+app.MapPost("/unassignAllShardGroup", (int groupId) => shardManager.UnassignAllShardGroup())
+    .WithName("PostUnassignAllShardGroup");
+
+app.MapGet("/shardGroups", () => shardManager.GetShardGroups())
     .WithName("GetShardGroups");
 
 app.MapGet("/maxShards", () => shardManager.GetMaxShards())
     .WithName("GetMaxShards");
 
-app.MapPost("/setMaxShards", (int newShardCount) => shardManager.SetMaxShards(newShardCount))
+app.MapPost("/maxShards", (int newShardCount) => shardManager.SetMaxShards(newShardCount))
     .WithName("SetMaxShards");
 
 app.Run();
