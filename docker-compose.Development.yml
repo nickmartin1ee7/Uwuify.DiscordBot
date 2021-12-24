@@ -17,6 +17,7 @@ services:
       restart_policy:
         condition: any
         max_attempts: 3
+        delay: 30s
 
   seq:
     image: datalust/seq:2021.3.6681
