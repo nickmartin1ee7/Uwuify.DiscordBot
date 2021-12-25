@@ -3,13 +3,17 @@ version: '3.4'
 services:
   uwuify.discordbot.workerservice:
     image: ${DOCKER_REGISTRY-}uwuifydiscordbotworkerservice
-    environment:
-      - DiscordSettings__Token
     build:
       context: .
       dockerfile: Uwuify.DiscordBot.WorkerService/Dockerfile
+    environment:
+        - DiscordSettings__Token
+        - DiscordSettings__Status
+        - Serilog__ApiKey
     depends_on:
         - seq
+        - uwuify.shardmanager.webapi
+
   seq:
     image: datalust/seq:2021.3.6681
     ports:
@@ -18,6 +22,18 @@ services:
         - ACCEPT_EULA=Y
     volumes:
         - seqdata:/data
+
+  uwuify.shardmanager.webapi:
+    container_name: shardmanager
+    image: ${DOCKER_REGISTRY-}uwuifyshardmanagerwebapi
+    environment:
+        - ShardManager__MaxShards
+        - ShardManager__InternalShards
+    ports:
+        - 8081:80
+    build:
+      context: .
+      dockerfile: Uwuify.ShardManager.WebApi/Dockerfile
 
 volumes:
   seqdata:

@@ -1,76 +1,181 @@
-using Discord.Commands;
-using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Remora.Commands.Extensions;
+using Remora.Discord.Commands.Extensions;
+using Remora.Discord.Commands.Services;
+using Remora.Discord.Hosting.Extensions;
+using Remora.Rest.Core;
 using Serilog;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using Remora.Discord.API.Gateway.Commands;
+using Remora.Discord.Gateway;
+using Remora.Discord.Gateway.Extensions;
+using Uwuify.ClassLibrary.Models;
+using Uwuify.DiscordBot.WorkerService.Commands;
 using Uwuify.DiscordBot.WorkerService.Models;
-using Uwuify.DiscordBot.WorkerService.Services;
 
-namespace Uwuify.DiscordBot.WorkerService
+namespace Uwuify.DiscordBot.WorkerService;
+public static class Program
 {
-    public static class Program
+    public static async Task Main(string[] args)
     {
-        public static IServiceProvider Services { get; private set; }
+        var configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json")
+            .AddEnvironmentVariables()
+            .Build();
 
-        public static void Main(string[] args)
+        var settings = configuration
+            .GetSection(nameof(DiscordSettings))
+            .Get<DiscordSettings>();
+
+        var serilogApiKey = configuration.GetSection("Serilog")
+            .GetValue<string>("ApiKey");
+
+        Log.Logger = new LoggerConfiguration()
+            .WriteTo.Seq("http://seq:80",
+                apiKey: serilogApiKey)
+            .ReadFrom.Configuration(configuration)
+            .CreateLogger();
+
+        var (shardResponse, shardGroup) = await DecideShardingAsync();
+        var shouldShard = shardResponse.IsSuccessStatusCode;
+
+        var shardClients = new List<IHost>();
+        foreach (var shardId in shardGroup.ShardIds)
         {
-            var configuration = new ConfigurationBuilder()
-#if DEBUG
-                .AddJsonFile("appsettings.Development.json")
-#else
-                .AddJsonFile("appsettings.json")
-#endif
-                .AddEnvironmentVariables()
+            var host = Host.CreateDefaultBuilder(args)
+                .UseSerilog(Log.Logger)
+                .ConfigureServices(serviceCollection =>
+                {
+                    // Configuration
+                    serviceCollection
+                        .AddSingleton(configuration)
+                        .AddSingleton(configuration
+                            .GetSection(nameof(DiscordSettings))
+                            .Get<DiscordSettings>());
+
+                    // Discord
+                    serviceCollection
+                        .AddDiscordCommands(true)
+                        .AddCommandGroup<UserCommands>()
+                        .AddTransient<IOptions<DiscordGatewayClientOptions>>(_ => shouldShard
+                            ? new OptionsWrapper<DiscordGatewayClientOptions>(new DiscordGatewayClientOptions
+                            {
+                                ShardIdentification = new ShardIdentification(
+                                    shardId,
+                                    shardGroup.MaxShards)
+                            })
+                            : new OptionsWrapper<DiscordGatewayClientOptions>(new DiscordGatewayClientOptions()));
+
+                    var responderTypes = typeof(Program).Assembly
+                        .GetExportedTypes()
+                        .Where(t => t.IsResponder());
+
+                    foreach (var responderType in responderTypes)
+                    {
+                        serviceCollection.AddResponder(responderType);
+                    }
+                })
+                .AddDiscordService(_ => settings.Token)
                 .Build();
+            
+            shardClients.Add(host);
+        }
+        
+        try
+        {
+            int delay = 0;
+            await Task.WhenAll(shardClients.Select(async shardClient => {
+                ValidateSlashCommandSupport(shardClient.Services.GetRequiredService<SlashService>());
+#if DEBUG
+                await UpdateDebugSlashCommands(
+                    shardClient.Services.GetRequiredService<DiscordSettings>(),
+                    shardClient.Services.GetRequiredService<SlashService>());
+#endif
+                await Task.Delay(TimeSpan.FromSeconds(6 * delay));
+                delay++;
+                await shardClient.RunAsync();
+            }));
+        }
+        catch (Exception e)
+        {
+            Log.Fatal(e, "Hosted service crashed!");
+        }
+        finally
+        {
+            Log.CloseAndFlush();
+        }
+    }
 
-            Log.Logger = new LoggerConfiguration()
-                .WriteTo.Seq("http://seq:80",
-                    apiKey: configuration.GetSection("Serilog")
-                        .GetValue<string>("ApiKey"))
-                .ReadFrom.Configuration(configuration)
-                .CreateLogger();
-
-
-            var host = CreateHostBuilder(configuration, args).Build();
-
-            Services = host.Services;
-
+    private static async Task<(HttpResponseMessage shardResponse, ShardGroup shardGroup)> DecideShardingAsync()
+    {
+        using var shardHttpClient = new HttpClient();
+        HttpResponseMessage shardResponse = null;
+        for (int i = 0; i < 2; i++)
+        {
             try
             {
-                host.Run();
+                shardResponse =
+                    await shardHttpClient.GetAsync(
+                        $"http://shardmanager/requestShardGroup");
+                break;
             }
-            catch (Exception e)
+            catch (HttpRequestException)
             {
-                Log.Fatal(e, "Hosted service crashed!");
-            }
-            finally
-            {
-                Log.CloseAndFlush();
+                await Task.Delay(TimeSpan.FromSeconds(2));
             }
         }
 
-        private static IHostBuilder CreateHostBuilder(IConfiguration configuration, string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .UseSerilog(Log.Logger)
-                .ConfigureServices((_, services) =>
-                {
-                    services.AddSingleton<IConfiguration>(configuration);
-                    services.AddSingleton<DiscordSettings>(configuration
-                        .GetSection(nameof(DiscordSettings))
-                        .Get<DiscordSettings>());
-                    services.AddSingleton<EvaluationService>();
-                    services.AddSingleton<DiscordSocketClient>(new DiscordSocketClient(
-                        new DiscordSocketConfig
-                        {
-                            ExclusiveBulkDelete = true,
-                            AlwaysDownloadUsers = true
-                        }));
-                    services.AddSingleton<CommandHandlingService>();
-                    services.AddSingleton<CommandService>();
-                    services.AddSingleton<DiscordBotClient>();
-                    services.AddHostedService<Worker>();
-                });
+        switch (shardResponse.StatusCode)
+        {
+            case HttpStatusCode.Conflict:
+                Log.Logger.Warning("No more shards available for client");
+                Environment.Exit(0);
+                break;
+            default:
+                var content = await shardResponse.Content.ReadAsStringAsync();
+                var shardGroup = JsonSerializer.Deserialize<ShardGroup>(content, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                return (shardResponse, shardGroup);
+        }
+
+        return default;
+    }
+
+    private static void ValidateSlashCommandSupport(SlashService slashService)
+    {
+        var checkSlashSupport = slashService.SupportsSlashCommands();
+        if (!checkSlashSupport.IsSuccess)
+        {
+            Log.Logger.Warning(
+                "The registered commands of the bot don't support slash commands: {Reason}",
+                checkSlashSupport.Error!.Message);
+        }
+    }
+
+    private static async Task UpdateDebugSlashCommands(DiscordSettings discordSettings, SlashService slashService)
+    {
+        var debugServerString = discordSettings.DebugServerId;
+
+        if (!debugServerString.HasValue)
+        {
+            Log.Logger.Warning("Failed to parse debug server from configuration!");
+            return;
+        }
+
+        var updateSlash = await slashService.UpdateSlashCommandsAsync(new Snowflake(debugServerString.Value));
+        if (!updateSlash.IsSuccess)
+        {
+            Log.Logger.Warning(
+                "Failed to update slash commands: {Reason}",
+                updateSlash.Error!.Message);
+        }
     }
 }

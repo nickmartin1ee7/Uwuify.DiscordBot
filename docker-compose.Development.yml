@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   workerservice:
-    image: nickmartin1ee7/uwuifydiscordbotworkerservice:latest
+    image: nickmartin1ee7/uwuifydiscordbotworkerservice:dev
     environment:
         - DiscordSettings__Token
         - DiscordSettings__Status
@@ -23,7 +23,7 @@ services:
   seq:
     image: datalust/seq:2021.3.6681
     ports:
-        - 8080:80
+        - 8085:80
     environment:
         - ACCEPT_EULA=Y
     volumes:
@@ -37,12 +37,12 @@ services:
         condition: any
 
   shardmanager:
-    image: nickmartin1ee7/uwuifyshardmanagerwebapi:latest
+    image: nickmartin1ee7/uwuifyshardmanagerwebapi:dev
     environment:
         - ShardManager__MaxShards
         - ShardManager__InternalShards
     ports:
-        - 8081:80
+        - 8086:80
     deploy:
       replicas: 1
       mode: replicated

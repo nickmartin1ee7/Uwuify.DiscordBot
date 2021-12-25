@@ -1,12 +1,9 @@
-﻿using System.Collections.Generic;
+﻿namespace Uwuify.DiscordBot.WorkerService.Models;
 
-namespace Uwuify.DiscordBot.WorkerService.Models
+public class DiscordSettings
 {
-    public class DiscordSettings
-    {
-        public string Token { get; set; }
-        public string StatusMessage { get; set; }
-        public IEnumerable<string> Prefixes { get; set; }
-        public ulong OwnerId { get; set; }
-    }
+    public ulong? OwnerId { get; set; }
+    public ulong? DebugServerId { get; set; }
+    public string Status { get; set; }
+    public string Token { get; set; }
 }
