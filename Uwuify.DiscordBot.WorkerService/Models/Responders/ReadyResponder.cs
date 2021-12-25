@@ -67,7 +67,7 @@ public class ReadyResponder : IResponder<IReady>
             _logger.LogInformation("Shard Id (#{shardId}) ready ({shardIndex} of {shardCount}).", gatewayEvent.Shard.Value.ShardID, gatewayEvent.Shard.Value.ShardID+1, gatewayEvent.Shard.Value.ShardCount);
         }
 
-        _logger.LogInformation("{botUser} is online for {count} guilds. Guilds: {guilds}",
+        _logger.LogInformation("{botUser} is online for {shardGuildCount} guilds. Guilds: {guilds}",
             gatewayEvent.User.ToFullUsername(),
             gatewayEvent.Guilds.Count, gatewayEvent.Guilds.Select(g => g.GuildID));
 
