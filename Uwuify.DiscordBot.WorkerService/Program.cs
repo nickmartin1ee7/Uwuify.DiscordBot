@@ -115,11 +115,11 @@ public static class Program
         }
     }
 
-    private static async Task<(HttpResponseMessage shardResponse, ShardGroup shardGroup)> DecideShardingAsync()
+    private static async Task<(HttpResponseMessage shardResponse, ShardGroup shardGroup)> DecideShardingAsync(int attempts = 2)
     {
         using var shardHttpClient = new HttpClient();
         HttpResponseMessage shardResponse = null;
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < attempts; i++)
         {
             try
             {
@@ -128,8 +128,9 @@ public static class Program
                         $"http://shardmanager/requestShardGroup");
                 break;
             }
-            catch (HttpRequestException)
+            catch (HttpRequestException e)
             {
+                Log.Logger.Warning(e, "Failed to connect to Shard Manager. Attempt {i} of {attempts}", i, attempts);
                 await Task.Delay(TimeSpan.FromSeconds(2));
             }
         }
