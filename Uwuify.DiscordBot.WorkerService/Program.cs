@@ -96,13 +96,14 @@ public static class Program
             await Task.WhenAll(shardClients.Select(async shardClient => {
                 ValidateSlashCommandSupport(shardClient.Services.GetRequiredService<SlashService>());
 #if DEBUG
-                await UpdateDebugSlashCommands(
-                    shardClient.Services.GetRequiredService<DiscordSettings>(),
-                    shardClient.Services.GetRequiredService<SlashService>());
+                    await UpdateDebugSlashCommands(
+                        shardClient.Services.GetRequiredService<DiscordSettings>(),
+                        shardClient.Services.GetRequiredService<SlashService>());
 #endif
-                await Task.Delay(TimeSpan.FromSeconds(6 * delay));
-                delay++;
-                await shardClient.RunAsync();
+                    await Task.Delay(
+                        TimeSpan.FromSeconds(6 * delay)); // Internal sharding must be delayed by at least 5s
+                    delay++;
+                    await shardClient.RunAsync();
             }));
         }
         catch (Exception e)
@@ -112,6 +113,9 @@ public static class Program
         finally
         {
             Log.CloseAndFlush();
+            using var internalShardHttpClient = new HttpClient();
+            _ = await internalShardHttpClient.GetAsync(
+                    $"http://shardmanager/unassignShardGroup?groupId={shardGroup.GroupId}");
         }
     }
 
