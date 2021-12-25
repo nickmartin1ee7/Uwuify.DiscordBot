@@ -130,7 +130,7 @@ public static class Program
             }
             catch (HttpRequestException e)
             {
-                Log.Logger.Warning(e, "Failed to connect to Shard Manager. Attempt {i} of {attempts}", i, attempts);
+                Log.Logger.Warning(e, "Failed to connect to Shard Manager. Attempt {i} of {attempts}.", i + 1, attempts);
                 await Task.Delay(TimeSpan.FromSeconds(2));
             }
         }
