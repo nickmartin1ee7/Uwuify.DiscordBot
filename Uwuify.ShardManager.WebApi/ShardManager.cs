@@ -7,7 +7,7 @@ public class ShardManager
 {
     private readonly ConcurrentDictionary<int, ShardGroup> _shardGroups = new();
     private int _maxShards;
-    private readonly int _groupSize;
+    private int _groupSize;
 
     public ShardManager(int maxShards, int groupSize)
     {
@@ -66,6 +66,14 @@ public class ShardManager
     public void UnassignAllShardGroups()
     {
         _shardGroups.Clear();
+    }
+
+    public int GetInternalShards() => _groupSize;
+
+    public void SetInternalShards(int newInternalShardCount)
+    {
+        _groupSize = newInternalShardCount;
+        UnassignAllShardGroups();
     }
 }
 
