@@ -32,6 +32,10 @@ public static class Program
             .AddEnvironmentVariables()
             .Build();
 
+        var settings = configuration
+            .GetSection(nameof(DiscordSettings))
+            .Get<DiscordSettings>();
+
         var serilogApiKey = configuration.GetSection("Serilog")
             .GetValue<string>("ApiKey");
 
@@ -41,11 +45,7 @@ public static class Program
             .ReadFrom.Configuration(configuration)
             .CreateLogger();
 
-        var token = configuration
-            .GetSection(nameof(DiscordSettings))
-            .GetValue<string>("Token");
-
-        var (shardResponse, shardGroup) = await DecideShardingAsync();
+        var (shardResponse, shardGroup) = await DecideShardingAsync(settings.InternalShards);
         var shouldShard = shardResponse.IsSuccessStatusCode;
 
         var shardClients = new List<IHost>();
@@ -84,7 +84,7 @@ public static class Program
                         serviceCollection.AddResponder(responderType);
                     }
                 })
-                .AddDiscordService(_ => token)
+                .AddDiscordService(_ => settings.Token)
                 .Build();
             
             shardClients.Add(host);
@@ -115,7 +115,7 @@ public static class Program
         }
     }
 
-    private static async Task<(HttpResponseMessage shardResponse, ShardGroup shardGroup)> DecideShardingAsync(int internalShardCount = 4)
+    private static async Task<(HttpResponseMessage shardResponse, ShardGroup shardGroup)> DecideShardingAsync(int internalShards)
     {
         using var shardHttpClient = new HttpClient();
         HttpResponseMessage shardResponse = null;
@@ -125,7 +125,7 @@ public static class Program
             {
                 shardResponse =
                     await shardHttpClient.GetAsync(
-                        $"http://shardmanager/requestShardGroup?groupSize={internalShardCount}");
+                        $"http://shardmanager/requestShardGroup?groupSize={internalShards}");
                 break;
             }
             catch (HttpRequestException)
