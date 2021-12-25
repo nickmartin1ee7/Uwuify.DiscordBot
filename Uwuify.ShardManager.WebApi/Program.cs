@@ -12,17 +12,21 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-var originalMaxShards = app.Configuration
+var maxShards = app.Configuration
     .GetSection(nameof(ShardManager))
-    .GetValue<int>("ShardCount");
+    .GetValue<int>("MaxShards");
 
-var shardManager = new ShardManager(originalMaxShards);
+var internalShards = app.Configuration
+    .GetSection(nameof(ShardManager))
+    .GetValue<int>("InternalShards");
 
-app.MapGet("/requestShardGroup", (int groupSize) =>
+var shardManager = new ShardManager(maxShards, internalShards);
+
+app.MapGet("/requestShardGroup", () =>
     {
         try
         {
-            return Results.Ok(shardManager.RequestShardGroup(groupSize));
+            return Results.Ok(shardManager.RequestShardGroup());
         }
         catch (OutOfAvailableShardsException)
         {

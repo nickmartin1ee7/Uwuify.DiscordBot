@@ -7,16 +7,21 @@ public class ShardManager
 {
     private readonly ConcurrentDictionary<int, ShardGroup> _shardGroups = new();
     private int _maxShards;
+    private readonly int _groupSize;
 
-    public ShardManager(int maxShards)
+    public ShardManager(int maxShards, int groupSize)
     {
         if (maxShards <= 0)
             throw new ArgumentOutOfRangeException(nameof(maxShards));
 
+        if (groupSize <= 0)
+            throw new ArgumentOutOfRangeException(nameof(groupSize));
+
         _maxShards = maxShards;
+        _groupSize = groupSize;
     }
 
-    public ShardGroup? RequestShardGroup(int groupSize)
+    public ShardGroup? RequestShardGroup()
     {
         var lastShardId = !_shardGroups.Any()
             ? -1
@@ -26,7 +31,7 @@ public class ShardManager
 
         // At least one to give
         int startingShard = lastShardId + 1;
-        for (int i = 0; i < groupSize && lastShardId + 1 < _maxShards; i++)
+        for (int i = 0; i < _groupSize && lastShardId + 1 < _maxShards; i++)
         {
             shardIds.Add(startingShard + i);
             lastShardId = shardIds.Max();

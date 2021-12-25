@@ -45,7 +45,7 @@ public static class Program
             .ReadFrom.Configuration(configuration)
             .CreateLogger();
 
-        var (shardResponse, shardGroup) = await DecideShardingAsync(settings.InternalShards);
+        var (shardResponse, shardGroup) = await DecideShardingAsync();
         var shouldShard = shardResponse.IsSuccessStatusCode;
 
         var shardClients = new List<IHost>();
@@ -115,7 +115,7 @@ public static class Program
         }
     }
 
-    private static async Task<(HttpResponseMessage shardResponse, ShardGroup shardGroup)> DecideShardingAsync(int internalShards)
+    private static async Task<(HttpResponseMessage shardResponse, ShardGroup shardGroup)> DecideShardingAsync()
     {
         using var shardHttpClient = new HttpClient();
         HttpResponseMessage shardResponse = null;
@@ -125,7 +125,7 @@ public static class Program
             {
                 shardResponse =
                     await shardHttpClient.GetAsync(
-                        $"http://shardmanager/requestShardGroup?groupSize={internalShards}");
+                        $"http://shardmanager/requestShardGroup");
                 break;
             }
             catch (HttpRequestException)

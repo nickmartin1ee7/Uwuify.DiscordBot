@@ -6,7 +6,6 @@ services:
     environment:
         - DiscordSettings__Token
         - DiscordSettings__Status
-        - DiscordSettings__InternalShards
         - Serilog__ApiKey
     depends_on:
         - seq
@@ -40,7 +39,8 @@ services:
   shardmanager:
     image: nickmartin1ee7/uwuifyshardmanagerwebapi:dev
     environment:
-        - ShardManager__ShardCount
+        - ShardManager__MaxShards
+        - ShardManager__InternalShards
     ports:
         - 8086:80
     deploy:
