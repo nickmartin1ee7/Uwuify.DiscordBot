@@ -7,8 +7,10 @@ services:
       context: .
       dockerfile: Uwuify.DiscordBot.WorkerService/Dockerfile
     environment:
-          - DiscordSettings__Token
-          - Serilog__ApiKey
+        - DiscordSettings__Token
+        - DiscordSettings__Status
+        - DiscordSettings__InternalShards
+        - Serilog__ApiKey
     depends_on:
         - seq
         - uwuify.shardmanager.webapi
@@ -26,7 +28,7 @@ services:
     container_name: shardmanager
     image: ${DOCKER_REGISTRY-}uwuifyshardmanagerwebapi
     environment:
-        - ShardCount
+        - ShardManager__ShardCount
     ports:
         - 8081:80
     build:
