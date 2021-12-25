@@ -13,6 +13,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 var originalMaxShards = app.Configuration
+    .GetSection(nameof(ShardManager))
     .GetValue<int>("ShardCount");
 
 var shardManager = new ShardManager(originalMaxShards);
