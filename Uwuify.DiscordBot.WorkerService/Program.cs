@@ -92,7 +92,6 @@ public static class Program
         
         try
         {
-            int delay = 0;
             await Task.WhenAll(shardClients.Select(async shardClient => {
                 ValidateSlashCommandSupport(shardClient.Services.GetRequiredService<SlashService>());
 #if DEBUG
@@ -101,8 +100,7 @@ public static class Program
                         shardClient.Services.GetRequiredService<SlashService>());
 #endif
                     await Task.Delay(
-                        TimeSpan.FromSeconds(6 * delay)); // Internal sharding must be delayed by at least 5s
-                    delay++;
+                        TimeSpan.FromSeconds(10 * (shardClients.Count - 1))); // Internal sharding must be delayed by at least 5s
                     await shardClient.RunAsync();
             }));
         }
