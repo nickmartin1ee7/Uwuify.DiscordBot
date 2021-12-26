@@ -38,7 +38,7 @@ public class ReadyResponder : IResponder<IReady>
         {
             foreach (var gatewayEventGuild in gatewayEvent.Guilds)
             {
-                ShortTermMemory.KnownGuilds.Add(gatewayEventGuild.GuildID);
+                ShortTermMemory.KnownGuilds.Add(gatewayEventGuild.ID);
             }
         }
 
@@ -69,7 +69,7 @@ public class ReadyResponder : IResponder<IReady>
 
         _logger.LogInformation("{botUser} is online for {shardGuildCount} guilds. Guilds: {guilds}",
             gatewayEvent.User.ToFullUsername(),
-            gatewayEvent.Guilds.Count, gatewayEvent.Guilds.Select(g => g.GuildID));
+            gatewayEvent.Guilds.Count, gatewayEvent.Guilds.Select(g => g.ID));
 
         RememberInitialGuildIds();
         UpdatePresence();
