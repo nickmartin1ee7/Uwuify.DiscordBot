@@ -86,22 +86,24 @@ public static class Program
                 })
                 .AddDiscordService(_ => settings.Token)
                 .Build();
-            
+
             shardClients.Add(host);
         }
-        
+
         try
         {
-            await Task.WhenAll(shardClients.Select(async shardClient => {
+            int runningClients = 0;
+            await Task.WhenAll(shardClients.Select(async shardClient =>
+            {
                 ValidateSlashCommandSupport(shardClient.Services.GetRequiredService<SlashService>());
 #if DEBUG
-                    await UpdateDebugSlashCommands(
-                        shardClient.Services.GetRequiredService<DiscordSettings>(),
-                        shardClient.Services.GetRequiredService<SlashService>());
+                await UpdateDebugSlashCommands(
+                    shardClient.Services.GetRequiredService<DiscordSettings>(),
+                    shardClient.Services.GetRequiredService<SlashService>());
 #endif
-                    await Task.Delay(
-                        TimeSpan.FromSeconds(10 * (shardClients.Count - 1))); // Internal sharding must be delayed by at least 5s
-                    await shardClient.RunAsync();
+                var delay = TimeSpan.FromSeconds(10 * runningClients++);
+                await Task.Delay(delay); // Internal sharding must be delayed by at least 5s
+                await shardClient.RunAsync();
             }));
         }
         catch (Exception e)
@@ -129,6 +131,10 @@ public static class Program
                 shardResponse =
                     await shardHttpClient.GetAsync(
                         $"http://shardmanager/requestShardGroup");
+
+                if (shardResponse is null)
+                    continue;
+
                 break;
             }
             catch (HttpRequestException e)
