@@ -112,6 +112,7 @@ public static class Program
         }
         finally
         {
+            Log.Logger.Information("Client exiting. Giving up shard group: {shardGroup}.", shardGroup);
             Log.CloseAndFlush();
             using var internalShardHttpClient = new HttpClient();
             _ = await internalShardHttpClient.GetAsync(
