@@ -48,47 +48,9 @@ public static class Program
         var (shardResponse, shardGroup) = await DecideShardingAsync();
         var shouldShard = shardResponse.IsSuccessStatusCode;
 
-        var shardClients = new List<IHost>();
-        foreach (var shardId in shardGroup.ShardIds)
-        {
-            var host = Host.CreateDefaultBuilder(args)
-                .UseSerilog(Log.Logger)
-                .ConfigureServices(serviceCollection =>
-                {
-                    // Configuration
-                    serviceCollection
-                        .AddSingleton(configuration)
-                        .AddSingleton(configuration
-                            .GetSection(nameof(DiscordSettings))
-                            .Get<DiscordSettings>());
-
-                    // Discord
-                    serviceCollection
-                        .AddDiscordCommands(true)
-                        .AddCommandGroup<UserCommands>()
-                        .AddTransient<IOptions<DiscordGatewayClientOptions>>(_ => shouldShard
-                            ? new OptionsWrapper<DiscordGatewayClientOptions>(new DiscordGatewayClientOptions
-                            {
-                                ShardIdentification = new ShardIdentification(
-                                    shardId,
-                                    shardGroup.MaxShards)
-                            })
-                            : new OptionsWrapper<DiscordGatewayClientOptions>(new DiscordGatewayClientOptions()));
-
-                    var responderTypes = typeof(Program).Assembly
-                        .GetExportedTypes()
-                        .Where(t => t.IsResponder());
-
-                    foreach (var responderType in responderTypes)
-                    {
-                        serviceCollection.AddResponder(responderType);
-                    }
-                })
-                .AddDiscordService(_ => settings.Token)
-                .Build();
-
-            shardClients.Add(host);
-        }
+        var shardClients = shardGroup.ShardIds
+            .Select(shardId => CreateHost(args, configuration, shouldShard, shardId, shardGroup, settings))
+            .ToList();
 
         try
         {
@@ -119,6 +81,43 @@ public static class Program
                     $"http://shardmanager/unassignShardGroup?groupId={shardGroup.GroupId}");
         }
     }
+
+    private static IHost CreateHost(string[] args, IConfigurationRoot configuration, bool shouldShard, int shardId, ShardGroup shardGroup, DiscordSettings settings) =>
+        Host.CreateDefaultBuilder(args)
+            .UseSerilog(Log.Logger)
+            .ConfigureServices(serviceCollection =>
+            {
+                // Configuration
+                serviceCollection
+                    .AddSingleton(configuration)
+                    .AddSingleton(configuration
+                        .GetSection(nameof(DiscordSettings))
+                        .Get<DiscordSettings>());
+
+                // Discord
+                serviceCollection
+                    .AddDiscordCommands(true)
+                    .AddCommandGroup<UserCommands>()
+                    .AddTransient<IOptions<DiscordGatewayClientOptions>>(_ => shouldShard
+                        ? new OptionsWrapper<DiscordGatewayClientOptions>(new DiscordGatewayClientOptions
+                        {
+                            ShardIdentification = new ShardIdentification(
+                                shardId,
+                                shardGroup.MaxShards)
+                        })
+                        : new OptionsWrapper<DiscordGatewayClientOptions>(new DiscordGatewayClientOptions()));
+
+                var responderTypes = typeof(Program).Assembly
+                    .GetExportedTypes()
+                    .Where(t => t.IsResponder());
+
+                foreach (var responderType in responderTypes)
+                {
+                    serviceCollection.AddResponder(responderType);
+                }
+            })
+            .AddDiscordService(_ => settings.Token)
+            .Build();
 
     private static async Task<(HttpResponseMessage shardResponse, ShardGroup shardGroup)> DecideShardingAsync(int attempts = 2)
     {
