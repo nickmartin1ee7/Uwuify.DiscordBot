@@ -34,7 +34,7 @@ public class UserCommands : LoggedCommandGroup<UserCommands>
     [Command("uwuify")]
     [CommandType(ApplicationCommandType.ChatInput)]
     [Description("Convert your message into UwU")]
-    public async Task<IResult> UwuAsync([Description("text")] string text)
+    public async Task<IResult> UwuAsync([Description("Now say something kawaii~")] string text)
     {
         await LogCommandUsageAsync(typeof(UserCommands).GetMethod(nameof(UwuAsync)), text);
 
