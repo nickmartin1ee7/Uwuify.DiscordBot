@@ -7,7 +7,7 @@ public class ShardManager
 {
     private readonly ConcurrentDictionary<int, ShardGroup> _shardGroups = new();
     private int _maxShards;
-    private readonly int _groupSize;
+    private int _groupSize;
 
     public ShardManager(int maxShards, int groupSize)
     {
@@ -23,22 +23,53 @@ public class ShardManager
 
     public ShardGroup? RequestShardGroup()
     {
-        var lastShardId = !_shardGroups.Any()
-            ? -1
-            : _shardGroups.Values.Max(v => v.ShardIds.Max());
+        ShardGroup? shardGroup = null;
 
-        var shardIds = new List<int>();
-
-        // At least one to give
-        int startingShard = lastShardId + 1;
-        for (int i = 0; i < _groupSize && lastShardId + 1 < _maxShards; i++)
+        // Search for unassigned group gaps
+        if (_shardGroups.Keys.Any())
         {
-            shardIds.Add(startingShard + i);
-            lastShardId = shardIds.Max();
+            for (int i = 0; i < _shardGroups.Keys.Max(); i++)
+            {
+                // Gap found
+                if (!_shardGroups.TryGetValue(i, out _))
+                {
+                    var hasPreviousGroup = _shardGroups.TryGetValue(i - 1, out var previousGroup);
+                    _ = _shardGroups.TryGetValue(i + 1, out var nextGroup);
+
+                    var startShardId = hasPreviousGroup
+                        ? previousGroup!.ShardIds.Max() + 1
+                        : 0;
+
+                    var endShardId = nextGroup!.ShardIds.Min();
+
+                    shardGroup = new ShardGroup(i, _maxShards, Enumerable.Range(startShardId, endShardId - startShardId).ToList());
+                    break;
+                }
+            }
+        }
+        
+        if (shardGroup is null)
+        {
+            var nextShardId = !_shardGroups.Any()
+                ? 0
+                : _shardGroups.Values.Max(shardGroups => shardGroups.ShardIds.Max()) + 1;
+
+            var prospectiveLastShardId = nextShardId + _groupSize;
+
+            var lastShardId = prospectiveLastShardId >= _maxShards
+                ? prospectiveLastShardId - (prospectiveLastShardId - _maxShards)
+                : prospectiveLastShardId;
+
+            var nextGroupId = !_shardGroups.Any()
+                ? 0
+                : _shardGroups.Keys.Max() + 1;
+
+            shardGroup = new ShardGroup(nextGroupId,
+                _maxShards,
+                Enumerable.Range(nextShardId, lastShardId - nextShardId).ToList());
         }
 
-        var shardGroup = new ShardGroup((!_shardGroups.Any() ? -1 : _shardGroups.Keys.Max()) + 1, _maxShards, shardIds);
-
+        // Does the new group contain any shards?
         if (shardGroup.ShardIds.Any())
         {
             _shardGroups.TryAdd(shardGroup.GroupId, shardGroup);
@@ -66,6 +97,14 @@ public class ShardManager
     public void UnassignAllShardGroups()
     {
         _shardGroups.Clear();
+    }
+
+    public int GetInternalShards() => _groupSize;
+
+    public void SetInternalShards(int newInternalShardCount)
+    {
+        _groupSize = newInternalShardCount;
+        UnassignAllShardGroups();
     }
 }
 

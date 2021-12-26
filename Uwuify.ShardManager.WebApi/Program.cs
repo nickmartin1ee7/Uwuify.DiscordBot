@@ -35,19 +35,25 @@ app.MapGet("/requestShardGroup", () =>
     })
 .WithName("GetRequestShardGroup");
 
-app.MapPost("/unassignShardGroup", (int groupId) => shardManager.UnassignShardGroup(groupId))
-    .WithName("PostResetShards");
-
-app.MapPost("/unassignAllShardGroups", (int groupId) => shardManager.UnassignAllShardGroups())
-    .WithName("PostUnassignAllShardGroups");
-
 app.MapGet("/shardGroups", () => shardManager.GetShardGroups())
-    .WithName("GetShardGroups");
+    .WithName("GetShardGroups"); 
+
+app.MapGet("/unassignShardGroup", (int groupId) => shardManager.UnassignShardGroup(groupId))
+    .WithName("GetUnassignShardGroup");
+
+app.MapPost("/unassignAllShardGroups", () => shardManager.UnassignAllShardGroups())
+    .WithName("PostUnassignAllShardGroups");
 
 app.MapGet("/maxShards", () => shardManager.GetMaxShards())
     .WithName("GetMaxShards");
 
-app.MapPost("/maxShards", (int newShardCount) => shardManager.SetMaxShards(newShardCount))
+app.MapPost("/maxShards", (int newMaxShardCount) => shardManager.SetMaxShards(newMaxShardCount))
     .WithName("SetMaxShards");
+
+app.MapGet("/internalShards", () => shardManager.GetInternalShards())
+    .WithName("GetInternalShards");
+
+app.MapPost("/internalShards", (int newInternalShardCount) => shardManager.SetInternalShards(newInternalShardCount))
+    .WithName("SetInternalShards");
 
 app.Run();

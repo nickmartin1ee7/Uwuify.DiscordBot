@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Gateway.Events;
@@ -63,12 +64,12 @@ public class ReadyResponder : IResponder<IReady>
 
         if (gatewayEvent.Shard.HasValue)
         {
-            _logger.LogInformation("Shard #{shardId} of {shardCount}", gatewayEvent.Shard.Value.ShardID, gatewayEvent.Shard.Value.ShardCount);
+            _logger.LogInformation("Shard Id (#{shardId}) ready ({shardIndex} of {shardCount}).", gatewayEvent.Shard.Value.ShardID, gatewayEvent.Shard.Value.ShardID+1, gatewayEvent.Shard.Value.ShardCount);
         }
 
-        _logger.LogInformation("{botUser} is online for {count} guilds",
+        _logger.LogInformation("{botUser} is online for {shardGuildCount} guilds. Guilds: {guilds}",
             gatewayEvent.User.ToFullUsername(),
-            gatewayEvent.Guilds.Count);
+            gatewayEvent.Guilds.Count, gatewayEvent.Guilds.Select(g => g.GuildID));
 
         RememberInitialGuildIds();
         UpdatePresence();
