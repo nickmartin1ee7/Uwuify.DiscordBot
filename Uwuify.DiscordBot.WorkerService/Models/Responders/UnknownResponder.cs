@@ -19,7 +19,7 @@ public class UnknownResponder : IResponder<IUnknownEvent>
 
     public async Task<Result> RespondAsync(IUnknownEvent gatewayEvent, CancellationToken ct = new())
     {
-        _logger.LogDebug("Unknown Event from Gateway: {unknownEvent}", JsonSerializer.Serialize(gatewayEvent));
+        _logger.LogTrace("Unknown Event from Gateway: {unknownEvent}", JsonSerializer.Serialize(gatewayEvent));
 
         return Result.FromSuccess();
     }
