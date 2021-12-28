@@ -104,7 +104,6 @@ public class ShardManager
     public void SetInternalShards(int newInternalShardCount)
     {
         _groupSize = newInternalShardCount;
-        UnassignAllShardGroups();
     }
 }
 
