@@ -54,8 +54,9 @@ public class UserCommands : LoggedCommandGroup<UserCommands>
 
     [Command("feedback")]
     [CommandType(ApplicationCommandType.ChatInput)]
+    [Ephemeral]
     [Description("Leave feedback for the developer")]
-    public async Task<IResult> FeedbackAsync([Description("text")] string text)
+    public async Task<IResult> FeedbackAsync([Description("Enter your feedback to the developer")] string text)
     {
         await LogCommandUsageAsync(typeof(UserCommands).GetMethod(nameof(FeedbackAsync)), text);
 
