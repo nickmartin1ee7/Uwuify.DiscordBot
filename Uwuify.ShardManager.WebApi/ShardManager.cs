@@ -30,11 +30,16 @@ public class ShardManager
         {
             // Next available Group Id
             var maxGroupId = _shardGroups.Keys.Max();
+
             var existingGroupIds = _shardGroups.Keys.ToArray();
+
             nextGroupId = FindNextId(maxGroupId, existingGroupIds);
             
             // Available ShardIds
-            var existingShardIds = _shardGroups.Values.SelectMany(g => g.ShardIds).OrderBy(id => id).ToArray();
+            var existingShardIds = _shardGroups.Values.SelectMany(g => g.ShardIds)
+                .OrderBy(id => id)
+                .ToArray();
+
             var gapIds = FindGapsInArray(existingShardIds);
 
             shardIds.AddRange(gapIds.Length >= _groupSize
@@ -44,8 +49,11 @@ public class ShardManager
             if (!shardIds.Any())
             {
                 var maxAssignedShard = _shardGroups.Values.Max(shardGroups => shardGroups.ShardIds.Max());
+
                 var nextShardId = FindNextId(maxAssignedShard, existingShardIds);
+
                 var tempLastShardId = existingShardIds.Last() + _groupSize;
+
                 var lastShardId = tempLastShardId >= _maxShards
                     ? tempLastShardId - (tempLastShardId - _maxShards) - 1
                     : tempLastShardId;
