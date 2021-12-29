@@ -11,10 +11,10 @@ public class ShardManager
 
     public ShardManager(int maxShards, int groupSize)
     {
-        if (maxShards <= 0)
+        if (maxShards < 1)
             throw new ArgumentOutOfRangeException(nameof(maxShards));
 
-        if (groupSize <= 0)
+        if (groupSize < 1 || groupSize > maxShards)
             throw new ArgumentOutOfRangeException(nameof(groupSize));
 
         _maxShards = maxShards;
@@ -90,6 +90,9 @@ public class ShardManager
 
     public void SetMaxShards(int newShardCount)
     {
+        if (newShardCount < 1)
+            throw new ArgumentOutOfRangeException(nameof(newShardCount));
+
         _maxShards = newShardCount;
         UnassignAllShardGroups();
     }
@@ -103,6 +106,9 @@ public class ShardManager
 
     public void SetInternalShards(int newInternalShardCount)
     {
+        if (newInternalShardCount < 1 || newInternalShardCount > _maxShards)
+            throw new ArgumentOutOfRangeException(nameof(newInternalShardCount));
+
         _groupSize = newInternalShardCount;
     }
 }
