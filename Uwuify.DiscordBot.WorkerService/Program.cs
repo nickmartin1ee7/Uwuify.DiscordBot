@@ -118,7 +118,7 @@ public static class Program
             .AddDiscordService(_ => settings.Token)
             .Build();
 
-    private static async Task<(HttpResponseMessage shardResponse, ShardGroup shardGroup)> DecideShardingAsync(int attempts = 2)
+    private static async Task<(HttpResponseMessage shardResponse, ShardGroup shardGroup)> DecideShardingAsync(int attempts = 5)
     {
         using var shardHttpClient = new HttpClient();
         HttpResponseMessage shardResponse = null;
@@ -140,6 +140,12 @@ public static class Program
                 Log.Logger.Warning(e, "Failed to connect to Shard Manager. Attempt {i} of {attempts}.", i + 1, attempts);
                 await Task.Delay(TimeSpan.FromSeconds(2));
             }
+        }
+
+        if (shardResponse is null)
+        {
+            Log.Logger.Error("Failed to connect to Shard Manager. Out of Attempts.");
+            Environment.Exit(-1);
         }
 
         switch (shardResponse.StatusCode)

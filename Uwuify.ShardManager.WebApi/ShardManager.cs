@@ -21,14 +21,15 @@ public class ShardManager
         _groupSize = groupSize;
     }
 
-    public ShardGroup? RequestShardGroup()
+    public ShardGroup RequestShardGroup()
     {
         ShardGroup? shardGroup = null;
 
         // Search for unassigned group gaps
         if (_shardGroups.Keys.Any())
         {
-            for (int i = 0; i < _shardGroups.Keys.Max(); i++)
+            var maxKey = _shardGroups.Keys.Max();
+            for (int i = 0; i < maxKey; i++)
             {
                 // Gap found
                 if (!_shardGroups.TryGetValue(i, out _))
@@ -40,7 +41,11 @@ public class ShardManager
                         ? previousGroup!.ShardIds.Max() + 1
                         : 0;
 
-                    var endShardId = nextGroup!.ShardIds.Min();
+                    var potentialLastShard = nextGroup!.ShardIds.Min();
+
+                    var endShardId = potentialLastShard - startShardId > _groupSize
+                        ? startShardId + (potentialLastShard - (potentialLastShard - _groupSize))
+                        : potentialLastShard;
 
                     shardGroup = new ShardGroup(i, _maxShards, Enumerable.Range(startShardId, endShardId - startShardId).ToList());
                     break;
@@ -50,9 +55,32 @@ public class ShardManager
         
         if (shardGroup is null)
         {
-            var nextShardId = !_shardGroups.Any()
-                ? 0
-                : _shardGroups.Values.Max(shardGroups => shardGroups.ShardIds.Max()) + 1;
+            int nextShardId = 0;
+
+            if (_shardGroups.Any())
+            {
+                //_shardGroups.Values.Max(shardGroups => shardGroups.ShardIds.Max()) + 1;
+                int maxAssignedShard = _shardGroups.Values.Max(shardGroups => shardGroups.ShardIds.Max());
+                var existingShardIds = _shardGroups.Values.SelectMany(g => g.ShardIds).ToArray();
+                int? missingShardId = null;
+                for (int i = 0; i < maxAssignedShard; i++)
+                {
+                    if (existingShardIds[i] != i)
+                    {
+                        missingShardId = i;
+                        break;
+                    }
+                }
+
+                if (missingShardId.HasValue)
+                {
+                    nextShardId = missingShardId.Value;
+                }
+                else
+                {
+                    nextShardId = existingShardIds.Last() + 1;
+                }
+            }
 
             var prospectiveLastShardId = nextShardId + _groupSize;
 
