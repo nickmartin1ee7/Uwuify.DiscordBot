@@ -51,27 +51,7 @@ public class UserCommands : LoggedCommandGroup<UserCommands>
             ? Result.FromSuccess()
             : Result.FromError(reply);
     }
-
-    [Command("feedback")]
-    [CommandType(ApplicationCommandType.ChatInput)]
-    [Ephemeral]
-    [Description("Leave feedback for the developer")]
-    public async Task<IResult> FeedbackAsync([Description("Enter your feedback to the developer")] string text)
-    {
-        await LogCommandUsageAsync(typeof(UserCommands).GetMethod(nameof(FeedbackAsync)), text);
-
-        _logger.LogInformation("New feedback left by {userName}. Feedback: {feedbackText}", _ctx.User.ToFullUsername(), text.Trim());
-
-        var reply = await _feedbackService.SendContextualEmbedAsync(new Embed("Feedback Submitted", 
-                Description: "Thank you for your feedback! A developer will review your comments shortly.", 
-                Colour: new Optional<Color>(Color.PaleVioletRed)), 
-            ct: CancellationToken);
-
-        return reply.IsSuccess
-            ? Result.FromSuccess()
-            : Result.FromError(reply);
-    }
-
+    
     [Command("Uwuify This Message")]
     [CommandType(ApplicationCommandType.Message)]
     public async Task<IResult> UwuThisMessageAsync()
@@ -90,6 +70,26 @@ public class UserCommands : LoggedCommandGroup<UserCommands>
 
         var reply = await _feedbackService.SendContextualEmbedAsync(new Embed($"{targetUser} Just Got UwU-ed!",
                 Description: outputMsg,
+                Colour: new Optional<Color>(Color.PaleVioletRed)),
+            ct: CancellationToken);
+
+        return reply.IsSuccess
+            ? Result.FromSuccess()
+            : Result.FromError(reply);
+    }
+
+    [Command("feedback")]
+    [CommandType(ApplicationCommandType.ChatInput)]
+    [Ephemeral]
+    [Description("Leave feedback for the developer")]
+    public async Task<IResult> FeedbackAsync([Description("Enter your feedback to the developer")] string text)
+    {
+        await LogCommandUsageAsync(typeof(UserCommands).GetMethod(nameof(FeedbackAsync)), text);
+
+        _logger.LogInformation("New feedback left by {userName}. Feedback: {feedbackText}", _ctx.User.ToFullUsername(), text.Trim());
+
+        var reply = await _feedbackService.SendContextualEmbedAsync(new Embed("Feedback Submitted",
+                Description: "Thank you for your feedback! A developer will review your comments shortly.",
                 Colour: new Optional<Color>(Color.PaleVioletRed)),
             ct: CancellationToken);
 
