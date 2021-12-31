@@ -17,11 +17,11 @@ using Uwuify.Humanizer;
 
 namespace Uwuify.DiscordBot.WorkerService.Commands;
 
-public class UserCommands : LoggedCommandGroup<UserCommands>
+public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
 {
     private readonly FeedbackService _feedbackService;
 
-    public UserCommands(ILogger<UserCommands> logger,
+    public UwuifyCommands(ILogger<UwuifyCommands> logger,
         FeedbackService feedbackService,
         ICommandContext ctx,
         IDiscordRestGuildAPI guildApi,
@@ -36,7 +36,7 @@ public class UserCommands : LoggedCommandGroup<UserCommands>
     [Description("Convert your message into UwU")]
     public async Task<IResult> UwuAsync([Description("Now say something kawaii~")] string text)
     {
-        await LogCommandUsageAsync(typeof(UserCommands).GetMethod(nameof(UwuAsync)), text);
+        await LogCommandUsageAsync(typeof(UwuifyCommands).GetMethod(nameof(UwuAsync)), text);
 
         var outputMsg = text.Uwuify();
 
@@ -60,7 +60,7 @@ public class UserCommands : LoggedCommandGroup<UserCommands>
         var c = _ctx as InteractionContext;
         var originalMessage = c!.Data.Resolved.Value.Messages.Value.Values.First().Content.Value;
 
-        await LogCommandUsageAsync(typeof(UserCommands).GetMethod(nameof(UwuThisMessageAsync)), originalMessage);
+        await LogCommandUsageAsync(typeof(UwuifyCommands).GetMethod(nameof(UwuThisMessageAsync)), originalMessage);
 
         var outputMsg = originalMessage.Uwuify();
 
@@ -70,26 +70,6 @@ public class UserCommands : LoggedCommandGroup<UserCommands>
 
         var reply = await _feedbackService.SendContextualEmbedAsync(new Embed($"{targetUser} Just Got UwU-ed!",
                 Description: outputMsg,
-                Colour: new Optional<Color>(Color.PaleVioletRed)),
-            ct: CancellationToken);
-
-        return reply.IsSuccess
-            ? Result.FromSuccess()
-            : Result.FromError(reply);
-    }
-
-    [Command("feedback")]
-    [CommandType(ApplicationCommandType.ChatInput)]
-    [Ephemeral]
-    [Description("Leave feedback for the developer")]
-    public async Task<IResult> FeedbackAsync([Description("Enter your feedback to the developer")] string text)
-    {
-        await LogCommandUsageAsync(typeof(UserCommands).GetMethod(nameof(FeedbackAsync)), text);
-
-        _logger.LogInformation("New feedback left by {userName}. Feedback: {feedbackText}", _ctx.User.ToFullUsername(), text.Trim());
-
-        var reply = await _feedbackService.SendContextualEmbedAsync(new Embed("Feedback Submitted",
-                Description: "Thank you for your feedback! A developer will review your comments shortly.",
                 Colour: new Optional<Color>(Color.PaleVioletRed)),
             ct: CancellationToken);
 
