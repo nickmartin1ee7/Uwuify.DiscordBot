@@ -27,10 +27,22 @@ public class GuildJoinedResponder : IResponder<IGuildCreate>
         if (ShortTermMemory.KnownGuilds.Contains(gatewayEvent.ID))
             return Result.FromSuccess();
 
-        _logger.LogInformation("Joined new guild: {guildName} ({guildId}) with {userCount} users",
-            gatewayEvent.Name,
-            gatewayEvent.ID,
-            gatewayEvent.ApproximateMemberCount);
+        int? userCount = null;
+
+        if (gatewayEvent.MemberCount.HasValue)
+            userCount = gatewayEvent.MemberCount.Value;
+        else if (gatewayEvent.ApproximateMemberCount.HasValue)
+            userCount = gatewayEvent.ApproximateMemberCount.Value;
+
+        if (userCount.HasValue)
+            _logger.LogInformation("Joined new guild: {guildName} ({guildId}) with {userCount} users",
+                gatewayEvent.Name,
+                gatewayEvent.ID,
+                userCount);
+        else
+            _logger.LogInformation("Joined new guild: {guildName} ({guildId})",
+                gatewayEvent.Name,
+                gatewayEvent.ID);
 
         ShortTermMemory.KnownGuilds.Add(gatewayEvent.ID);
 
