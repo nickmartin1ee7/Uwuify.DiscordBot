@@ -28,7 +28,7 @@ public class GuildJoinedResponder : IResponder<IGuildCreate>
             return Result.FromSuccess();
         
         if (gatewayEvent.MemberCount.HasValue)
-            _logger.LogInformation("Joined new guild: {guildName} ({guildId}) with {userCount} users",
+            _logger.LogInformation("Joined new guild: {guildName} ({guildId}) with {userCount} users.",
                 gatewayEvent.Name,
                 gatewayEvent.ID,
                 gatewayEvent.MemberCount.Value);
