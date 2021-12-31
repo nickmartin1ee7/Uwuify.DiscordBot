@@ -11,8 +11,9 @@ using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
 using Uwuify.DiscordBot.WorkerService.Extensions;
+using Uwuify.DiscordBot.WorkerService.Models;
 
-namespace Uwuify.DiscordBot.WorkerService.Models.Responders;
+namespace Uwuify.DiscordBot.WorkerService.Responders;
 
 public class ReadyResponder : IResponder<IReady>
 {

@@ -3,35 +3,34 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Rest;
-using Remora.Discord.Commands.Services;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
 using Uwuify.DiscordBot.WorkerService.Extensions;
+using Uwuify.DiscordBot.WorkerService.Models;
 
-namespace Uwuify.DiscordBot.WorkerService.Models.Responders;
+namespace Uwuify.DiscordBot.WorkerService.Responders;
 
-public class GuildJoinedResponder : IResponder<IGuildCreate>
+public class GuildLeftResponder : IResponder<IGuildDelete>
 {
-    private readonly ILogger<GuildJoinedResponder> _logger;
+    private readonly ILogger<GuildLeftResponder> _logger;
     private readonly IDiscordRestUserAPI _userApi;
 
-    public GuildJoinedResponder(ILogger<GuildJoinedResponder> logger,
+    public GuildLeftResponder(ILogger<GuildLeftResponder> logger,
         IDiscordRestUserAPI userApi)
     {
         _logger = logger;
         _userApi = userApi;
     }
 
-    public async Task<Result> RespondAsync(IGuildCreate gatewayEvent, CancellationToken ct = new())
+    public async Task<Result> RespondAsync(IGuildDelete gatewayEvent, CancellationToken ct = new())
     {
-        if (ShortTermMemory.KnownGuilds.Contains(gatewayEvent.ID))
+        if (!ShortTermMemory.KnownGuilds.Contains(gatewayEvent.ID))
             return Result.FromSuccess();
-        
-        _logger.LogInformation("Joined new guild: {guildName} ({guildId})",
-            gatewayEvent.Name,
+
+        _logger.LogInformation("Left guild: {guildId}",
             gatewayEvent.ID);
 
-        ShortTermMemory.KnownGuilds.Add(gatewayEvent.ID);
+        ShortTermMemory.KnownGuilds.Remove(gatewayEvent.ID);
 
         await _logger.LogGuildCountAsync(_userApi, ct);
 

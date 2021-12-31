@@ -6,7 +6,7 @@ using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
 
-namespace Uwuify.DiscordBot.WorkerService.Models.Responders;
+namespace Uwuify.DiscordBot.WorkerService.Responders;
 
 public class UnknownResponder : IResponder<IUnknownEvent>
 {
