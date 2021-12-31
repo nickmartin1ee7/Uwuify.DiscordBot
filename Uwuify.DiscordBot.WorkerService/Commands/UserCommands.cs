@@ -40,7 +40,7 @@ public class UserCommands : LoggedCommandGroup<UserCommands>
 
         var outputMsg = text.Uwuify();
 
-        _logger.LogDebug("{commandName} result: {msg}", nameof(UwuAsync), outputMsg);
+        _logger.LogDebug("{commandName} result: {message}", nameof(UwuAsync), outputMsg);
 
         var reply = await _feedbackService.SendContextualEmbedAsync(new Embed("Uwuify",
                 Description: outputMsg,
@@ -84,7 +84,7 @@ public class UserCommands : LoggedCommandGroup<UserCommands>
 
         var outputMsg = originalMessage.Uwuify();
 
-        _logger.LogDebug("{commandName} result: {msg}", nameof(UwuAsync), outputMsg);
+        _logger.LogDebug("{commandName} result: {message}", nameof(UwuAsync), outputMsg);
 
         var targetUser = c.Data.Resolved.Value.Messages.Value.First().Value.Author.Value.ToFullUsername();
 

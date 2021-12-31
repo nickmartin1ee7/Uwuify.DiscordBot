@@ -36,7 +36,7 @@ public class LoggedCommandGroup<TCommandGroup> : CommandGroup
 
         var channelName = await _channelApi.GetChannelAsync(_ctx.ChannelID, ct: CancellationToken);
 
-        _logger.LogInformation("{command} triggered by {user} ({userId}) in #{channel} ({channelId}); {guild} ({guildId}); Message: {message}",
+        _logger.LogInformation("{commandName} triggered by {userName} ({userId}) in #{channel} ({channelId}); {guildName} ({guildId}); Message: {message}",
             commandName,
             _ctx.User.ToFullUsername(),
             _ctx.User.ID,
