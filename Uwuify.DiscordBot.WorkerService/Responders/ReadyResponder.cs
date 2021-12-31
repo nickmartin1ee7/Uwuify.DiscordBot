@@ -103,7 +103,8 @@ public class ReadyResponder : IResponder<IReady>
         RememberInitialGuildIds();
         UpdatePresence();
         await UpdateGlobalSlashCommands();
-        await LogClientDetailsAsync();
+
+        _ = Task.Run(LogClientDetailsAsync, ct);
 
         return Result.FromSuccess();
     }
