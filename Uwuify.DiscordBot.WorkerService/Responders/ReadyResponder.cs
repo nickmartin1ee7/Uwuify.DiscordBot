@@ -1,7 +1,4 @@
-﻿using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Gateway.Commands;
@@ -10,6 +7,9 @@ using Remora.Discord.Commands.Services;
 using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Uwuify.DiscordBot.WorkerService.Extensions;
 using Uwuify.DiscordBot.WorkerService.Models;
 
@@ -65,7 +65,7 @@ public class ReadyResponder : IResponder<IReady>
 
         if (gatewayEvent.Shard.HasValue)
         {
-            _logger.LogInformation("Shard Id (#{shardId}) ready ({shardIndex} of {shardCount}).", gatewayEvent.Shard.Value.ShardID, gatewayEvent.Shard.Value.ShardID+1, gatewayEvent.Shard.Value.ShardCount);
+            _logger.LogInformation("Shard Id (#{shardId}) ready ({shardIndex} of {shardCount}).", gatewayEvent.Shard.Value.ShardID, gatewayEvent.Shard.Value.ShardID + 1, gatewayEvent.Shard.Value.ShardCount);
         }
 
         _logger.LogInformation("{botUser} is online for {shardGuildCount} guilds. Guilds: {guilds}",

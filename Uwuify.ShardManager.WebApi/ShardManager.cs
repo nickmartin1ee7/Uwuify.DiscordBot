@@ -32,7 +32,7 @@ public class ShardManager
             var existingGroupIds = _shardGroups.Keys.ToArray();
 
             nextGroupId = FindNextId(existingGroupIds);
-            
+
             // Available ShardIds
             var existingShardIds = _shardGroups.Values.SelectMany(g => g.ShardIds)
                 .OrderBy(id => id)
@@ -64,7 +64,7 @@ public class ShardManager
                 shardIds.Add(i);
             }
         }
-        
+
         var shardGroup = new ShardGroup(nextGroupId, _maxShards, shardIds);
 
         // Does the new group contain any shards?

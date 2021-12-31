@@ -1,7 +1,7 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
-using Remora.Discord.API.Abstractions.Gateway.Events;
+﻿using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Rest.Core;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Uwuify.DiscordBot.WorkerService.Extensions
 {

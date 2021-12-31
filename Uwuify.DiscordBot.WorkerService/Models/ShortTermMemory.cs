@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using Remora.Rest.Core;
+﻿using Remora.Rest.Core;
+using System.Collections.Generic;
 
 namespace Uwuify.DiscordBot.WorkerService.Models;
 

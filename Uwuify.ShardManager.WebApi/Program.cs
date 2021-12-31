@@ -36,7 +36,7 @@ app.MapGet("/requestShardGroup", () =>
 .WithName("GetRequestShardGroup");
 
 app.MapGet("/shardGroups", () => shardManager.GetShardGroups())
-    .WithName("GetShardGroups"); 
+    .WithName("GetShardGroups");
 
 app.MapGet("/unassignShardGroup", (int groupId) => shardManager.UnassignShardGroup(groupId))
     .WithName("GetUnassignShardGroup");
