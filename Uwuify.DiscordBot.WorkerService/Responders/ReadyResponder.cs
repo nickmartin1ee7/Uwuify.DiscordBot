@@ -91,8 +91,8 @@ public class ReadyResponder : IResponder<IReady>
                 "{botUser} is online for {shardGuildCount} guilds and {shardUserCount} users. Guilds: {guilds}",
                 gatewayEvent.User.ToFullUsername(),
                 gatewayEvent.Guilds.Count,
-                shardGuilds,
-                shardUserCount);
+                shardUserCount,
+                shardGuilds);
         }
 
         if (gatewayEvent.Shard.HasValue)
