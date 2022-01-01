@@ -34,6 +34,8 @@ services:
         parallelism: 1
       restart_policy:
         condition: any
+      placement:
+        constraints: [node.role == manager]
 
   shardmanager:
     image: nickmartin1ee7/uwuifyshardmanagerwebapi:latest
@@ -49,6 +51,8 @@ services:
         parallelism: 1
       restart_policy:
         condition: any
+      placement:
+        constraints: [node.role == manager]
 
 volumes:
   seqdata:
