@@ -101,8 +101,12 @@ public class ReadyResponder : IResponder<IReady>
         }
 
         RememberInitialGuildIds();
-        UpdatePresence();
-        await UpdateGlobalSlashCommands();
+
+        if (gatewayEvent.Shard.HasValue && gatewayEvent.Shard.Value.ShardID == 0)
+        {
+            UpdatePresence();
+            await UpdateGlobalSlashCommands();
+        }
 
         _ = Task.Run(LogClientDetailsAsync, ct);
 
