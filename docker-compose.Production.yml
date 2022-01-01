@@ -21,6 +21,7 @@ services:
       placement:
         preferences:
           - spread: node.lables.slot
+          - spread: node.id
 
   seq:
     image: datalust/seq:2021.3.6681
