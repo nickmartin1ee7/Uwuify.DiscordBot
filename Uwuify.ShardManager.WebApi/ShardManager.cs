@@ -132,7 +132,11 @@ public class ShardManager
         if (newShardCount < 1)
             throw new ArgumentOutOfRangeException(nameof(newShardCount));
 
+        if (_groupSize > newShardCount)
+            _groupSize = newShardCount;
+
         _maxShards = newShardCount;
+
         UnassignAllShardGroups();
     }
 
