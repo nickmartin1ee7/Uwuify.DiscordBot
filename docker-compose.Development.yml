@@ -18,6 +18,9 @@ services:
       restart_policy:
         condition: any
         delay: 5s
+      placement:
+        preferences:
+          - spread: node.lables.slot
 
   seq:
     image: datalust/seq:2021.3.6681
@@ -34,6 +37,9 @@ services:
         parallelism: 1
       restart_policy:
         condition: any
+      placement:
+        constraints:
+          - "node.role==manager"
 
   shardmanager:
     image: nickmartin1ee7/uwuifyshardmanagerwebapi:dev
@@ -49,6 +55,9 @@ services:
         parallelism: 1
       restart_policy:
         condition: any
+      placement:
+        constraints:
+          - "node.role==manager"
 
 volumes:
   seqdata:
