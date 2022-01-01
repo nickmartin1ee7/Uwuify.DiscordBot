@@ -46,18 +46,10 @@ jobs:
     - name: Build Docker Image (DiscordBot)
       if: ${{ github.ref == 'refs/heads/main' }}
       run: docker buildx build --platform linux/arm64,linux/amd64 -f "Uwuify.DiscordBot.WorkerService/Dockerfile" --force-rm -t nickmartin1ee7/uwuifydiscordbotworkerservice:latest --push .
-      
-    - name: Publish Docker Image (DiscordBot)
-      if: ${{ github.ref == 'refs/heads/main' }}
-      run: docker push nickmartin1ee7/uwuifydiscordbotworkerservice:latest
-          
+
     - name: Build Docker Image (ShardManager)
       if: ${{ github.ref == 'refs/heads/main' }}
       run: docker buildx build --platform linux/arm64,linux/amd64 -f "Uwuify.ShardManager.WebApi/Dockerfile" --force-rm -t nickmartin1ee7/uwuifyshardmanagerwebapi:latest --push .
-    
-    - name: Publish Docker Image (ShardManager)
-      if: ${{ github.ref == 'refs/heads/main' }}
-      run: docker push nickmartin1ee7/uwuifyshardmanagerwebapi:latest
 
   deployment:
     runs-on: self-hosted
