@@ -10,7 +10,8 @@ services:
         - DiscordSettings__Token
         - DiscordSettings__Status
         - DiscordSettings__ShardManagerUri
-        - Serilog__ApiKey
+        - LoggerConfig__ServerUri
+        - LoggerConfig__ApiKey
     depends_on:
         - seq
         - uwuify.shardmanager.webapi
