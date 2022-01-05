@@ -35,7 +35,12 @@ public static class Program
             .GetSection(nameof(DiscordSettings))
             .Get<DiscordSettings>();
 
+        var loggerConfig = configuration.GetSection("LoggerConfig");
+
         Log.Logger = new LoggerConfiguration()
+            .WriteTo.Seq(
+                serverUrl: loggerConfig.GetValue<string>("ServerUri"),
+                apiKey: loggerConfig.GetValue<string>("ApiKey"))
             .ReadFrom.Configuration(configuration)
             .CreateLogger();
 
