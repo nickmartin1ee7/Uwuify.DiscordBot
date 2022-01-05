@@ -6,6 +6,7 @@ services:
     environment:
         - DiscordSettings__Token
         - DiscordSettings__Status
+        - DiscordSettings__ShardManagerUri
         - Serilog__ApiKey
     depends_on:
         - seq
