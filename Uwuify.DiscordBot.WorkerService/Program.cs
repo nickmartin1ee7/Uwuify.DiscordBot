@@ -35,16 +35,11 @@ public static class Program
             .GetSection(nameof(DiscordSettings))
             .Get<DiscordSettings>();
 
-        var serilogApiKey = configuration.GetSection("Serilog")
-            .GetValue<string>("ApiKey");
-
         Log.Logger = new LoggerConfiguration()
-            .WriteTo.Seq("http://seq:80",
-                apiKey: serilogApiKey)
             .ReadFrom.Configuration(configuration)
             .CreateLogger();
 
-        var (shardResponse, shardGroup) = await DecideShardingAsync();
+        var (shardResponse, shardGroup) = await DecideShardingAsync(settings.ShardManagerUri);
         var shouldShard = shardResponse.IsSuccessStatusCode;
 
         var shardClients = shardGroup.ShardIds
@@ -77,7 +72,7 @@ public static class Program
             Log.CloseAndFlush();
             using var internalShardHttpClient = new HttpClient();
             _ = await internalShardHttpClient.GetAsync(
-                    $"http://shardmanager/unassignShardGroup?groupId={shardGroup.GroupId}");
+                    $"{settings.ShardManagerUri}/unassignShardGroup?groupId={shardGroup.GroupId}");
         }
     }
 
@@ -119,7 +114,7 @@ public static class Program
             .AddDiscordService(_ => settings.Token)
             .Build();
 
-    private static async Task<(HttpResponseMessage shardResponse, ShardGroup shardGroup)> DecideShardingAsync(int attempts = 5)
+    private static async Task<(HttpResponseMessage shardResponse, ShardGroup shardGroup)> DecideShardingAsync(string shardManagerUri, int attempts = 5)
     {
         using var shardHttpClient = new HttpClient();
         HttpResponseMessage shardResponse = null;
@@ -129,7 +124,7 @@ public static class Program
             {
                 shardResponse =
                     await shardHttpClient.GetAsync(
-                        $"http://shardmanager/requestShardGroup");
+                        $"{shardManagerUri}/requestShardGroup");
 
                 if (shardResponse is null)
                     continue;
