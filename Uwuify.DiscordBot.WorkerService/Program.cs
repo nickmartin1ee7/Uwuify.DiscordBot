@@ -123,6 +123,7 @@ public static class Program
     {
         using var shardHttpClient = new HttpClient();
         HttpResponseMessage shardResponse = null;
+
         for (int i = 0; i < attempts; i++)
         {
             try
@@ -130,9 +131,6 @@ public static class Program
                 shardResponse =
                     await shardHttpClient.GetAsync(
                         $"{shardManagerUri}/requestShardGroup");
-
-                if (shardResponse is null)
-                    continue;
 
                 break;
             }
@@ -158,9 +156,10 @@ public static class Program
             default:
                 var content = await shardResponse.Content.ReadAsStringAsync();
                 var shardGroup = JsonSerializer.Deserialize<ShardGroup>(content, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                shardResponse.Dispose();
                 return (shardResponse, shardGroup);
         }
-
+        
         return default;
     }
 
