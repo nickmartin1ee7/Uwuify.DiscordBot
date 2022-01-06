@@ -37,6 +37,14 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
     public async Task<IResult> UwuAsync([Description("Now say something kawaii~")] string text)
     {
         await LogCommandUsageAsync(typeof(UwuifyCommands).GetMethod(nameof(UwuAsync)), text);
+        
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            var invalidReply = await _feedbackService.SendContextualErrorAsync("I don't see any message to UwUify.".Uwuify());
+            return invalidReply.IsSuccess
+                ? Result.FromSuccess()
+                : Result.FromError(invalidReply);
+        }
 
         var outputMsg = text.Uwuify();
 
@@ -56,11 +64,18 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
     [CommandType(ApplicationCommandType.Message)]
     public async Task<IResult> UwuThisMessageAsync()
     {
-
         var c = _ctx as InteractionContext;
         var originalMessage = c!.Data.Resolved.Value.Messages.Value.Values.First().Content.Value;
 
         await LogCommandUsageAsync(typeof(UwuifyCommands).GetMethod(nameof(UwuThisMessageAsync)), originalMessage);
+
+        if (string.IsNullOrWhiteSpace(originalMessage))
+        {
+            var invalidReply = await _feedbackService.SendContextualErrorAsync("I don't see any message to UwUify.".Uwuify());
+            return invalidReply.IsSuccess
+                ? Result.FromSuccess()
+                : Result.FromError(invalidReply);
+        }
 
         var outputMsg = originalMessage.Uwuify();
 

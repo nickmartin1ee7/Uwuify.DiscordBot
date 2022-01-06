@@ -37,6 +37,14 @@ public class MiscCommands : LoggedCommandGroup<MiscCommands>
     {
         await LogCommandUsageAsync(typeof(MiscCommands).GetMethod(nameof(FeedbackAsync)), text);
 
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            var invalidReply = await _feedbackService.SendContextualErrorAsync("Your feedback must contain a message.");
+            return invalidReply.IsSuccess
+                ? Result.FromSuccess()
+                : Result.FromError(invalidReply);
+        }
+
         _logger.LogInformation("New feedback left by {userName}. Feedback: {feedbackText}", _ctx.User.ToFullUsername(), text.Trim());
 
         var reply = await _feedbackService.SendContextualEmbedAsync(new Embed("Feedback Submitted",
