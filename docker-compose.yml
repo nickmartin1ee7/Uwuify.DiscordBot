@@ -14,7 +14,7 @@ services:
         - LoggerConfig__ApiKey
     depends_on:
         - seq
-        - uwuify.shardmanager.webapi
+        - shardmanager
 
   seq:
     image: datalust/seq:2021.3.6681
@@ -25,17 +25,14 @@ services:
     volumes:
         - seqdata:/data
 
-  uwuify.shardmanager.webapi:
+  shardmanager:
     container_name: shardmanager
-    image: ${DOCKER_REGISTRY-}uwuifyshardmanagerwebapi
+    image: nickmartin1ee7/discordbotshardmanagerwebapi:latest
     environment:
-        - ShardManager__MaxShards
-        - ShardManager__InternalShards
+        - ShardManager__MaxShards=1
+        - ShardManager__InternalShards=1
     ports:
         - 8081:80
-    build:
-      context: .
-      dockerfile: Uwuify.ShardManager.WebApi/Dockerfile
 
 volumes:
   seqdata:
