@@ -25,17 +25,5 @@ services:
     volumes:
         - seqdata:/data
 
-  uwuify.shardmanager.webapi:
-    container_name: shardmanager
-    image: ${DOCKER_REGISTRY-}uwuifyshardmanagerwebapi
-    environment:
-        - ShardManager__MaxShards
-        - ShardManager__InternalShards
-    ports:
-        - 8081:80
-    build:
-      context: .
-      dockerfile: Uwuify.ShardManager.WebApi/Dockerfile
-
 volumes:
   seqdata:

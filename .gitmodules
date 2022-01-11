@@ -1,0 +1,3 @@
+[submodule "DiscordBot.ShardManager"]
+	path = DiscordBot.ShardManager
+	url = https://github.com/nickmartin1ee7/DiscordBot.ShardManager
