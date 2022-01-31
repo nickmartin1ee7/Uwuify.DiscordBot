@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Gateway.Events;
-using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
 using System.Threading;
@@ -13,19 +12,16 @@ namespace Uwuify.DiscordBot.WorkerService.Responders;
 public class GuildJoinedResponder : IResponder<IGuildCreate>
 {
     private readonly ILogger<GuildJoinedResponder> _logger;
-    private readonly IDiscordRestUserAPI _userApi;
 
-    public GuildJoinedResponder(ILogger<GuildJoinedResponder> logger,
-        IDiscordRestUserAPI userApi)
+    public GuildJoinedResponder(ILogger<GuildJoinedResponder> logger)
     {
         _logger = logger;
-        _userApi = userApi;
     }
 
-    public async Task<Result> RespondAsync(IGuildCreate gatewayEvent, CancellationToken ct = new())
+    public Task<Result> RespondAsync(IGuildCreate gatewayEvent, CancellationToken ct = new())
     {
         if (ShortTermMemory.KnownGuilds.Contains(gatewayEvent.ID))
-            return Result.FromSuccess();
+            return Task.FromResult(Result.FromSuccess());
         
         if (gatewayEvent.MemberCount.HasValue)
             _logger.LogInformation("Joined new guild: {guildName} ({guildId}) with {userCount} users.",
@@ -39,8 +35,8 @@ public class GuildJoinedResponder : IResponder<IGuildCreate>
 
         ShortTermMemory.KnownGuilds.Add(gatewayEvent.ID);
 
-        await _logger.LogGuildCountAsync(_userApi, ct);
+        _logger.LogGuildCount();
 
-        return Result.FromSuccess();
+        return Task.FromResult(Result.FromSuccess());
     }
 }

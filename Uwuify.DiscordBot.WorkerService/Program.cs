@@ -95,9 +95,10 @@ public static class Program
 
                 // Discord
                 serviceCollection
-                    .AddDiscordCommands(true)
-                    .AddCommandGroup<UwuifyCommands>()
-                    .AddCommandGroup<MiscCommands>()
+                    .AddCommandTree()
+                    .WithCommandGroup<UwuifyCommands>()
+                    .WithCommandGroup<MiscCommands>()
+                    .Finish()
                     .AddTransient<IOptions<DiscordGatewayClientOptions>>(_ => shouldShard
                         ? new OptionsWrapper<DiscordGatewayClientOptions>(new DiscordGatewayClientOptions
                         {

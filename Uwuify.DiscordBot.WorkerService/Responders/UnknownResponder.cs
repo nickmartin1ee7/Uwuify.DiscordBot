@@ -17,10 +17,10 @@ public class UnknownResponder : IResponder<IUnknownEvent>
         _logger = logger;
     }
 
-    public async Task<Result> RespondAsync(IUnknownEvent gatewayEvent, CancellationToken ct = new())
+    public Task<Result> RespondAsync(IUnknownEvent gatewayEvent, CancellationToken ct = new())
     {
         _logger.LogTrace("Unknown Event from Gateway: {unknownEvent}", JsonSerializer.Serialize(gatewayEvent));
 
-        return Result.FromSuccess();
+        return Task.FromResult(Result.FromSuccess());
     }
 }

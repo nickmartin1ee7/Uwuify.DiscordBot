@@ -13,27 +13,24 @@ namespace Uwuify.DiscordBot.WorkerService.Responders;
 public class GuildLeftResponder : IResponder<IGuildDelete>
 {
     private readonly ILogger<GuildLeftResponder> _logger;
-    private readonly IDiscordRestUserAPI _userApi;
 
-    public GuildLeftResponder(ILogger<GuildLeftResponder> logger,
-        IDiscordRestUserAPI userApi)
+    public GuildLeftResponder(ILogger<GuildLeftResponder> logger)
     {
         _logger = logger;
-        _userApi = userApi;
     }
 
-    public async Task<Result> RespondAsync(IGuildDelete gatewayEvent, CancellationToken ct = new())
+    public Task<Result> RespondAsync(IGuildDelete gatewayEvent, CancellationToken ct = new())
     {
         if (!ShortTermMemory.KnownGuilds.Contains(gatewayEvent.ID))
-            return Result.FromSuccess();
+            return Task.FromResult(Result.FromSuccess());
 
         _logger.LogInformation("Left guild: {guildId}",
             gatewayEvent.ID);
 
         ShortTermMemory.KnownGuilds.Remove(gatewayEvent.ID);
 
-        await _logger.LogGuildCountAsync(_userApi, ct);
+        _logger.LogGuildCount();
 
-        return Result.FromSuccess();
+        return Task.FromResult(Result.FromSuccess());
     }
 }

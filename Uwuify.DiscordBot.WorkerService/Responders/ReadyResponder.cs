@@ -46,6 +46,8 @@ public class ReadyResponder : IResponder<IReady>
             {
                 ShortTermMemory.KnownGuilds.Add(gatewayEventGuild.ID);
             }
+
+            _logger.LogGuildCount();
         }
 
         void UpdatePresence()
@@ -97,7 +99,10 @@ public class ReadyResponder : IResponder<IReady>
 
         if (gatewayEvent.Shard.HasValue)
         {
-            _logger.LogInformation("Shard Id (#{shardId}) ready ({shardIndex} of {shardCount}).", gatewayEvent.Shard.Value.ShardID, gatewayEvent.Shard.Value.ShardID + 1, gatewayEvent.Shard.Value.ShardCount);
+            _logger.LogInformation("Shard Id (#{shardId}) ready ({shardIndex} of {shardCount}).",
+                gatewayEvent.Shard.Value.ShardID,
+                gatewayEvent.Shard.Value.ShardID + 1,
+                gatewayEvent.Shard.Value.ShardCount);
         }
 
         RememberInitialGuildIds();
