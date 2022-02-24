@@ -24,6 +24,8 @@ using Uwuify.DiscordBot.WorkerService.Models;
 namespace Uwuify.DiscordBot.WorkerService;
 public static class Program
 {
+    private static readonly HttpClient _httpClient = new();
+
     public static async Task Main(string[] args)
     {
         var configuration = new ConfigurationBuilder()
@@ -75,8 +77,7 @@ public static class Program
         {
             Log.Logger.Information("Client exiting. Giving up shard group: {shardGroup}.", shardGroup);
             Log.CloseAndFlush();
-            using var internalShardHttpClient = new HttpClient();
-            _ = await internalShardHttpClient.GetAsync(
+            _ = await _httpClient.GetAsync(
                     $"{settings.ShardManagerUri}/unassignShardGroup?groupId={shardGroup.GroupId}");
         }
     }
@@ -96,8 +97,10 @@ public static class Program
                 // Discord
                 serviceCollection
                     .AddDiscordCommands(true)
-                    .AddCommandGroup<UwuifyCommands>()
-                    .AddCommandGroup<MiscCommands>()
+                    .AddCommandTree()
+                    .WithCommandGroup<UwuifyCommands>()
+                    .WithCommandGroup<MiscCommands>()
+                    .Finish()
                     .AddTransient<IOptions<DiscordGatewayClientOptions>>(_ => shouldShard
                         ? new OptionsWrapper<DiscordGatewayClientOptions>(new DiscordGatewayClientOptions
                         {
@@ -121,7 +124,6 @@ public static class Program
 
     private static async Task<(HttpResponseMessage shardResponse, ShardGroup shardGroup)> DecideShardingAsync(string shardManagerUri, int attempts = 5)
     {
-        using var shardHttpClient = new HttpClient();
         HttpResponseMessage shardResponse = null;
 
         for (int i = 0; i < attempts; i++)
@@ -129,7 +131,7 @@ public static class Program
             try
             {
                 shardResponse =
-                    await shardHttpClient.GetAsync(
+                    await _httpClient.GetAsync(
                         $"{shardManagerUri}/requestShardGroup");
 
                 break;
@@ -159,7 +161,7 @@ public static class Program
                 shardResponse.Dispose();
                 return (shardResponse, shardGroup);
         }
-        
+
         return default;
     }
 
