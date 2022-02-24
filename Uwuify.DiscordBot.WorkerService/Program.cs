@@ -15,6 +15,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 using DiscordBot.ShardManager.Models;
@@ -53,6 +54,9 @@ public static class Program
             .Select(shardId => CreateHost(args, configuration, shouldShard, shardId, shardGroup, settings))
             .ToList();
 
+        AppDomain.CurrentDomain.ProcessExit += async (_, _) =>
+            await ReleaseShardGroupAsync(shardGroup, settings);
+
         try
         {
             int runningClients = 0;
@@ -75,11 +79,19 @@ public static class Program
         }
         finally
         {
-            Log.Logger.Information("Client exiting. Giving up shard group: {shardGroup}.", shardGroup);
-            Log.CloseAndFlush();
-            _ = await _httpClient.GetAsync(
-                    $"{settings.ShardManagerUri}/unassignShardGroup?groupId={shardGroup.GroupId}");
+            await ReleaseShardGroupAsync(shardGroup, settings);
         }
+    }
+
+    private static Task ReleaseShardGroupAsync(ShardGroup shardGroup, DiscordSettings settings, [CallerMemberName] string callerMethod = null)
+    {
+        Log.Logger.Information("Client exiting ({exitCaller}). Giving up shard group: {shardGroup}.", 
+            callerMethod, shardGroup);
+
+        Log.CloseAndFlush();
+
+        return _httpClient.GetAsync(
+            $"{settings.ShardManagerUri}/unassignShardGroup?groupId={shardGroup.GroupId}");
     }
 
     private static IHost CreateHost(string[] args, IConfigurationRoot configuration, bool shouldShard, int shardId, ShardGroup shardGroup, DiscordSettings settings) =>
