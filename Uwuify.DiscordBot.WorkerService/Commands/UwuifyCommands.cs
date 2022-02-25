@@ -65,9 +65,14 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
     public async Task<IResult> UwuThisMessageAsync()
     {
         var c = _ctx as InteractionContext;
-        var originalMessage = c!.Data.Resolved.Value.Messages.Value.Values.First().Content.Value;
 
-        await LogCommandUsageAsync(typeof(UwuifyCommands).GetMethod(nameof(UwuThisMessageAsync)), originalMessage);
+        var interactionData = c!.Data.Resolved.Value.Messages.Value.Values.First();
+        var originalMessage = interactionData.Content.Value;
+
+        if (string.IsNullOrWhiteSpace(originalMessage) && interactionData.Embeds.Value.Any())
+        {
+            originalMessage = interactionData.Embeds.Value.First().Description.Value;
+        }
 
         if (string.IsNullOrWhiteSpace(originalMessage))
         {
@@ -76,6 +81,8 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
                 ? Result.FromSuccess()
                 : Result.FromError(invalidReply);
         }
+
+        await LogCommandUsageAsync(typeof(UwuifyCommands).GetMethod(nameof(UwuThisMessageAsync)), originalMessage);
 
         var outputMsg = originalMessage.Uwuify();
 
