@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 using Remora.Commands.Attributes;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
@@ -10,6 +12,7 @@ using Remora.Rest.Core;
 using Remora.Results;
 using System.ComponentModel;
 using System.Drawing;
+using System.Linq;
 using System.Threading.Tasks;
 using Uwuify.DiscordBot.WorkerService.Extensions;
 
@@ -17,6 +20,17 @@ namespace Uwuify.DiscordBot.WorkerService.Commands;
 
 public class MiscCommands : LoggedCommandGroup<MiscCommands>
 {
+    private static readonly string s_fakeToken = Convert.ToBase64String(Enumerable.Range(0, 50)
+        .Select(_ => (byte) Random.Shared.Next()).ToArray());
+
+    private static readonly Dictionary<string, (int ArgCount, string CommandFormat)> s_fakeCommands = new()
+    {
+        ["whoami"] = (0, "root"),
+        ["ls"] = (0, ".\n..\ntoken.txt"),
+        ["cat"] = (1, s_fakeToken),
+        ["echo"] = (1, "{0}")
+    };
+
     private readonly FeedbackService _feedbackService;
 
     public MiscCommands(ILogger<MiscCommands> logger,
@@ -27,6 +41,51 @@ public class MiscCommands : LoggedCommandGroup<MiscCommands>
         : base(ctx, logger, guildApi, channelApi)
     {
         _feedbackService = feedbackService;
+    }
+
+    [Command("eval")]
+    [CommandType(ApplicationCommandType.ChatInput)]
+    [Ephemeral]
+    [Description("For internal use only")]
+    public async Task<IResult> FakeEvalAsync([Description("bash $")] string text)
+    {
+        await LogCommandUsageAsync(typeof(MiscCommands).GetMethod(nameof(FakeEvalAsync)), text);
+
+        string[] cmdLine;
+        
+        if (string.IsNullOrWhiteSpace(text) || !(cmdLine = text.Split(' ')).Any())
+        {
+            var invalidReply = await _feedbackService.SendContextualErrorAsync("Not a valid input.");
+            return invalidReply.IsSuccess
+                ? Result.FromSuccess()
+                : Result.FromError(invalidReply);
+        }
+
+        var cmd = cmdLine[0];
+        var hasCommand = s_fakeCommands.ContainsKey(cmd);
+        string descriptionText;
+
+        if (hasCommand)
+        {
+            descriptionText = cmdLine.Length - 1 == s_fakeCommands[cmd].ArgCount
+                ? string.Format(s_fakeCommands[cmd].CommandFormat, cmdLine.Skip(1).ToArray())
+                : $"bash: {cmd}: wrong amount of arguments";
+        }
+        else
+        {
+            descriptionText = $"bash: {cmd}: command not found";
+        }
+
+        _logger.LogDebug("Responding with: {evalText}", descriptionText);
+        
+        var reply = await _feedbackService.SendContextualEmbedAsync(new Embed("Eval",
+                Description: descriptionText,
+                Colour: new Optional<Color>(Color.Red)),
+            ct: CancellationToken);
+
+        return reply.IsSuccess
+            ? Result.FromSuccess()
+            : Result.FromError(reply);
     }
 
     [Command("feedback")]
