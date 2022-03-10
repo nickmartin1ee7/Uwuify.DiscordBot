@@ -7,10 +7,10 @@ services:
       context: .
       dockerfile: Uwuify.DiscordBot.WorkerService/Dockerfile
     environment:
-        - DiscordSettings__Token
-        - DiscordSettings__Status
-        - DiscordSettings__ShardManagerUri
-        - LoggerConfig__ServerUri
+        - DiscordSettings__Token=OTMwMjg2NjM0MTcwMTk1OTk4.Ydzq8Q.N5UdZWRZDRPA2v-JK60hGtgxrR0
+        - DiscordSettings__Status=Testing!
+        - DiscordSettings__ShardManagerUri=http://shardmanager
+        - LoggerConfig__ServerUri=http://seq
         - LoggerConfig__ApiKey
     depends_on:
         - seq
