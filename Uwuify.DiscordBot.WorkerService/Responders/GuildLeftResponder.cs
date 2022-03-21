@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Gateway.Events;
-using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
 using System.Threading;
@@ -21,7 +20,8 @@ public class GuildLeftResponder : IResponder<IGuildDelete>
 
     public Task<Result> RespondAsync(IGuildDelete gatewayEvent, CancellationToken ct = new())
     {
-        if (!ShortTermMemory.KnownGuilds.Contains(gatewayEvent.ID))
+        if (!ShortTermMemory.KnownGuilds.Contains(gatewayEvent.ID) // Haven't seen this guild before
+            || gatewayEvent.IsUnavailable.HasValue) // If the unavailable field is not set, the user was removed from the guild.
             return Task.FromResult(Result.FromSuccess());
 
         _logger.LogInformation("Left guild: {guildId}",
