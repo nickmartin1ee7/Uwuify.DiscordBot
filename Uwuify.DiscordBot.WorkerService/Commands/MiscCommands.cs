@@ -28,7 +28,15 @@ public class MiscCommands : LoggedCommandGroup<MiscCommands>
         ["whoami"] = (0, "root"),
         ["ls"] = (0, ".\n..\ntoken.txt"),
         ["cat"] = (1, s_fakeToken),
-        ["echo"] = (1, "{0}")
+        ["echo"] = (1, "{0}"),
+        ["help"] = (0, @"GNU bash, version 4.4.23(1)-release (x86_64-pc-msys)
+These shell commands are defined internally.  Type `help' to see this list.
+
+whoami
+ls [FILE]...
+cat [FILE]
+echo [arg ...]
+help")
     };
 
     private readonly FeedbackService _feedbackService;

@@ -25,7 +25,7 @@ using Uwuify.DiscordBot.WorkerService.Models;
 namespace Uwuify.DiscordBot.WorkerService;
 public static class Program
 {
-    private static readonly HttpClient _httpClient = new();
+    private static readonly HttpClient s_httpClient = new();
 
     public static async Task Main(string[] args)
     {
@@ -90,7 +90,7 @@ public static class Program
 
         Log.CloseAndFlush();
 
-        return _httpClient.GetAsync(
+        return s_httpClient.GetAsync(
             $"{settings.ShardManagerUri}/unassignShardGroup?groupId={shardGroup.GroupId}");
     }
 
@@ -143,7 +143,7 @@ public static class Program
             try
             {
                 shardResponse =
-                    await _httpClient.GetAsync(
+                    await s_httpClient.GetAsync(
                         $"{shardManagerUri}/requestShardGroup");
 
                 break;
