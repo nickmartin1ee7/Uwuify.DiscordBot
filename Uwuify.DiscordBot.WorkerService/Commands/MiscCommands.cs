@@ -37,7 +37,7 @@ These shell commands are defined internally.  Type `help' to see this list.
 cat [FILE]
 echo [arg ...]
 help
-ls [FILE]...
+ls
 reboot [TIME]
 shutdown [TIME]
 whoami
