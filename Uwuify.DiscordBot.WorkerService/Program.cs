@@ -97,6 +97,7 @@ public static class Program
     private static IHost CreateHost(string[] args, IConfigurationRoot configuration, bool shouldShard, int shardId, ShardGroup shardGroup, DiscordSettings settings) =>
         Host.CreateDefaultBuilder(args)
             .UseSerilog(Log.Logger)
+            .AddDiscordService(_ => settings.Token)
             .ConfigureServices(serviceCollection =>
             {
                 // Configuration
@@ -131,7 +132,6 @@ public static class Program
                     serviceCollection.AddResponder(responderType);
                 }
             })
-            .AddDiscordService(_ => settings.Token)
             .Build();
 
     private static async Task<(HttpResponseMessage shardResponse, ShardGroup shardGroup)> DecideShardingAsync(string shardManagerUri, int attempts = 5)
