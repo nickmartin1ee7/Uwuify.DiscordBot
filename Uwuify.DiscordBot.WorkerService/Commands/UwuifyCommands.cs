@@ -66,7 +66,7 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
     {
         var c = _ctx as InteractionContext;
 
-        var interactionData = c!.Data.Resolved.Value.Messages.Value.Values.First();
+        var interactionData = c!.Data.AsT0.Resolved.Value.Messages.Value.Values.First();
         var originalMessage = interactionData.Content.Value;
 
         if (string.IsNullOrWhiteSpace(originalMessage) && interactionData.Embeds.Value.Any())
@@ -88,7 +88,7 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
 
         _logger.LogDebug("{commandName} result: {message}", nameof(UwuThisMessageAsync), outputMsg);
 
-        var targetUser = c.Data.Resolved.Value.Messages.Value.First().Value.Author.Value.ToFullUsername();
+        var targetUser = c.Data.AsT0.Resolved.Value.Messages.Value.First().Value.Author.Value.ToFullUsername();
 
         var reply = await _feedbackService.SendContextualEmbedAsync(new Embed($"{targetUser} Just Got UwU-ed!",
                 Description: outputMsg,
