@@ -15,8 +15,10 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using DiscordBot.ShardManager.Models;
 using Uwuify.DiscordBot.WorkerService.Commands;
@@ -51,12 +53,14 @@ public static class Program
         var shouldShard = shardResponse.IsSuccessStatusCode;
 
         var shardClients = shardGroup.ShardIds
-            .Select(shardId => CreateHost(args, configuration, shouldShard, shardId, shardGroup, settings))
-            .ToList();
+            .Select(shardId => CreateHost(args, configuration, shouldShard, shardId, shardGroup, settings));
+
+        var serviceCancellationToken = new CancellationTokenSource();
 
         AppDomain.CurrentDomain.ProcessExit += async (_, _) =>
-            await ReleaseShardGroupAsync(shardGroup, settings);
+            await ReleaseShardGroupAsync(shardGroup, settings, serviceCancellationToken);
 
+        
         try
         {
             int runningClients = 0;
@@ -70,6 +74,30 @@ public static class Program
 #endif
                 var delay = TimeSpan.FromSeconds(10 * runningClients++);
                 await Task.Delay(delay); // Internal sharding must be delayed by at least 5s
+                
+                _ = Task.Run(async () =>
+                {
+                    while (true)
+                    {
+                        try
+                        {
+                            await s_httpClient.PostAsync($"{settings.ShardManagerUri}/heartbeat",
+                                JsonContent.Create(shardGroup),
+                                serviceCancellationToken.Token);
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Error(e, "Heartbeat failed for shard group: {shardGroup}",
+                                shardGroup);
+                        }
+                        finally
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(1),
+                                serviceCancellationToken.Token);
+                        }
+                    }
+                }, serviceCancellationToken.Token);
+                
                 await shardClient.RunAsync();
             }));
         }
@@ -79,17 +107,19 @@ public static class Program
         }
         finally
         {
-            await ReleaseShardGroupAsync(shardGroup, settings);
+            await ReleaseShardGroupAsync(shardGroup, settings, serviceCancellationToken);
         }
     }
 
-    private static Task ReleaseShardGroupAsync(ShardGroup shardGroup, DiscordSettings settings, [CallerMemberName] string callerMethod = null)
+    private static Task ReleaseShardGroupAsync(ShardGroup shardGroup, DiscordSettings settings, CancellationTokenSource cts, [CallerMemberName] string callerMethod = null)
     {
         Log.Logger.Information("Client exiting ({exitCaller}). Giving up shard group: {shardGroup}.", 
             callerMethod, shardGroup);
 
         Log.CloseAndFlush();
 
+        cts.Cancel();
+        
         return s_httpClient.GetAsync(
             $"{settings.ShardManagerUri}/unassignShardGroup?groupId={shardGroup.GroupId}");
     }
