@@ -7,10 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Uwuify.DiscordBot.WorkerSer
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{31A6E8CD-A746-4027-AB14-1654A349C9FE}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DiscordBot.ShardManager", "DiscordBot.ShardManager", "{977597BF-ED33-4504-B153-46D87ACA825C}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscordBot.ShardManager.ClassLibrary", "DiscordBot.ShardManager\DiscordBot.ShardManager.ClassLibrary\DiscordBot.ShardManager.ClassLibrary.csproj", "{62E55AF3-A711-4369-8822-D715B8BDAF34}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,18 +41,6 @@ Global
 		{31A6E8CD-A746-4027-AB14-1654A349C9FE}.Release|x64.Build.0 = Release|Any CPU
 		{31A6E8CD-A746-4027-AB14-1654A349C9FE}.Release|x86.ActiveCfg = Release|Any CPU
 		{31A6E8CD-A746-4027-AB14-1654A349C9FE}.Release|x86.Build.0 = Release|Any CPU
-		{62E55AF3-A711-4369-8822-D715B8BDAF34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{62E55AF3-A711-4369-8822-D715B8BDAF34}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{62E55AF3-A711-4369-8822-D715B8BDAF34}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{62E55AF3-A711-4369-8822-D715B8BDAF34}.Debug|x64.Build.0 = Debug|Any CPU
-		{62E55AF3-A711-4369-8822-D715B8BDAF34}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{62E55AF3-A711-4369-8822-D715B8BDAF34}.Debug|x86.Build.0 = Debug|Any CPU
-		{62E55AF3-A711-4369-8822-D715B8BDAF34}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{62E55AF3-A711-4369-8822-D715B8BDAF34}.Release|Any CPU.Build.0 = Release|Any CPU
-		{62E55AF3-A711-4369-8822-D715B8BDAF34}.Release|x64.ActiveCfg = Release|Any CPU
-		{62E55AF3-A711-4369-8822-D715B8BDAF34}.Release|x64.Build.0 = Release|Any CPU
-		{62E55AF3-A711-4369-8822-D715B8BDAF34}.Release|x86.ActiveCfg = Release|Any CPU
-		{62E55AF3-A711-4369-8822-D715B8BDAF34}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -65,6 +49,5 @@ Global
 		SolutionGuid = {3FE655DB-5742-488F-A210-C3753367D713}
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{62E55AF3-A711-4369-8822-D715B8BDAF34} = {977597BF-ED33-4504-B153-46D87ACA825C}
 	EndGlobalSection
 EndGlobal

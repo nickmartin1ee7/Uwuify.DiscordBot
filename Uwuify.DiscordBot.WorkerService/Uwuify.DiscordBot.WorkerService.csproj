@@ -24,6 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DiscordBot.ShardManager\DiscordBot.ShardManager.ClassLibrary\DiscordBot.ShardManager.ClassLibrary.csproj" />
+    <Content Update="appsettings.Development.json">
+      <DependentUpon>appsettings.json</DependentUpon>
+    </Content>
   </ItemGroup>
 </Project>

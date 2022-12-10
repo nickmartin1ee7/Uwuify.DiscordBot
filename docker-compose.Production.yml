@@ -6,12 +6,11 @@ services:
     environment:
         - DiscordSettings__Token
         - DiscordSettings__Status
-        - DiscordSettings__ShardManagerUri
+        - DiscordSettings__Shards
         - LoggerConfig__ServerUri
         - LoggerConfig__ApiKey
     depends_on:
         - seq
-        - shardmanager
     deploy:
       replicas: 1
       mode: replicated
@@ -26,31 +25,13 @@ services:
           - spread: node.id
 
   seq:
-    image: datalust/seq:2021.3.6681
+    image: datalust/seq:latest
     ports:
-        - 8080:80
+        - 11080:80
     environment:
         - ACCEPT_EULA=Y
     volumes:
         - seqdata:/data
-    deploy:
-      replicas: 1
-      mode: replicated
-      update_config:
-        parallelism: 1
-      restart_policy:
-        condition: any
-      placement:
-        constraints:
-          - "node.role==manager"
-
-  shardmanager:
-    image: nickmartin1ee7/discordbotshardmanagerwebapi:latest
-    environment:
-        - ShardManager__MaxShards
-        - ShardManager__InternalShards
-    ports:
-        - 8081:80
     deploy:
       replicas: 1
       mode: replicated

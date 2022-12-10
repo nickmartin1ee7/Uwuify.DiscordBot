@@ -7,32 +7,21 @@ services:
       context: .
       dockerfile: Uwuify.DiscordBot.WorkerService/Dockerfile
     environment:
-        - DiscordSettings__Token=OTMwMjg2NjM0MTcwMTk1OTk4.Ydzq8Q.N5UdZWRZDRPA2v-JK60hGtgxrR0
-        - DiscordSettings__Status=Testing!
-        - DiscordSettings__ShardManagerUri=http://shardmanager
-        - LoggerConfig__ServerUri=http://seq
-        - LoggerConfig__ApiKey
+        - DiscordSettings__Token
+        - DiscordSettings__Status
+        - DiscordSettings__Shards
+        - LoggerConfig__ServerUri
     depends_on:
         - seq
-        - shardmanager
 
   seq:
-    image: datalust/seq:2021.3.6681
+    image: datalust/seq:latest
     ports:
         - 8080:80
     environment:
         - ACCEPT_EULA=Y
     volumes:
         - seqdata:/data
-
-  shardmanager:
-    container_name: shardmanager
-    image: nickmartin1ee7/discordbotshardmanagerwebapi:latest
-    environment:
-        - ShardManager__MaxShards=1
-        - ShardManager__InternalShards=1
-    ports:
-        - 8081:80
 
 volumes:
   seqdata:
