@@ -58,4 +58,4 @@ jobs:
     steps:
     - name: Trigger Production Image Pull
       if: ${{ github.ref == 'refs/heads/main' }}
-      run: curl --location --request POST '${{ secrets.PROD_WEBHOOK_URI }}'
+      run: curl --location -k --request POST '${{ secrets.PROD_WEBHOOK_URI }}'
