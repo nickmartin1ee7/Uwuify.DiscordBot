@@ -7,8 +7,8 @@ services:
         - DiscordSettings__Token
         - DiscordSettings__Status
         - DiscordSettings__Shards
-        - LoggerConfig__ServerUri
-        - LoggerConfig__ApiKey
+        - DiscordSettings__MetricsUri
+        - DiscordSettings__MetricsToken
     depends_on:
         - seq
     deploy:

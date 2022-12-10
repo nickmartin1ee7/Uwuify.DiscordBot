@@ -10,7 +10,8 @@ services:
         - DiscordSettings__Token
         - DiscordSettings__Status
         - DiscordSettings__Shards
-        - LoggerConfig__ServerUri
+        - DiscordSettings__MetricsUri
+        - DiscordSettings__MetricsToken
     depends_on:
         - seq
 
