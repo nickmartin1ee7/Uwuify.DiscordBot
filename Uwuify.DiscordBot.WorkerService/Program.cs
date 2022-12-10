@@ -51,12 +51,7 @@ try
     await Parallel.ForEachAsync(shardIds, async (shardId, ct) =>
     {
         var client = CreateHost(args, configuration, shardId, settings);
-#if DEBUG
-        await UpdateDebugSlashCommands(
-            client.Services.GetRequiredService<DiscordSettings>(),
-            client.Services.GetRequiredService<SlashService>());
-#endif
-        var delay = TimeSpan.FromSeconds(10 * createdShards++);
+        await StartupActions(client); var delay = TimeSpan.FromSeconds(10 * createdShards++);
         await Task.Delay(delay, ct); // Internal sharding must be delayed by at least 5s
         await client.RunAsync(ct);
     });
@@ -103,6 +98,18 @@ IHost CreateHost(string[] args, IConfigurationRoot configuration, int shardId,
         })
         .Build();
 
+void ValidateSlashCommandSupport(SlashService slashService)
+{
+    var checkSlashSupport = slashService.SupportsSlashCommands();
+
+    if (!checkSlashSupport.IsSuccess)
+    {
+        Log.Logger.Warning(
+            "The registered commands of the bot don't support slash commands: {Reason}",
+            checkSlashSupport.Error!.Message);
+    }
+}
+
 async Task UpdateDebugSlashCommands(DiscordSettings discordSettings, SlashService slashService)
 {
     var debugServerString = discordSettings.DebugServerId;
@@ -120,4 +127,15 @@ async Task UpdateDebugSlashCommands(DiscordSettings discordSettings, SlashServic
             "Failed to update slash commands: {Reason}",
             updateSlash.Error!.Message);
     }
+}
+
+async Task StartupActions(IHost client)
+{
+    ValidateSlashCommandSupport(client.Services.GetRequiredService<SlashService>());
+
+#if DEBUG
+    await UpdateDebugSlashCommands(
+        client.Services.GetRequiredService<DiscordSettings>(),
+        client.Services.GetRequiredService<SlashService>());
+#endif
 }
