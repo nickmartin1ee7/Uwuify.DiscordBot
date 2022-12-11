@@ -1,10 +1,12 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+
+using Microsoft.Extensions.Logging;
+
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Uwuify.DiscordBot.WorkerService.Responders;
 
