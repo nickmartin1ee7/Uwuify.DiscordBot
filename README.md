@@ -5,7 +5,7 @@ It has since progressed into a learning experience for how to architecture a sha
 
 This project isn't really meant for public use, but feel free to use it. No guarentees!
 
-## Invite
+## Invite the official bot
 
 If you're just interested in trying it out, [invite it](https://discord.com/api/oauth2/authorize?client_id=868362243992080394&permissions=0&scope=bot%20applications.commands)!
 
