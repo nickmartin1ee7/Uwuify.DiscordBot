@@ -107,7 +107,14 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
             : Result.FromError(reply);
     }
 
-    private string CensorAndUwuify(string text) => _profanityFilter.ContainsProfanity(text)
-            ? _profanityFilter.CensorString(text).Uwuify(0) // Avoid *-*** situations
+    private string CensorAndUwuify(string text)
+    {
+        text = text.ToLower();
+        return _profanityFilter.ContainsProfanity(text)
+            ? _profanityFilter
+                .CensorString(text)
+                .Uwuify(0)
+                .Replace("*", "\\*")// Avoid *-*** situations
             : text.Uwuify();
+    }
 }
