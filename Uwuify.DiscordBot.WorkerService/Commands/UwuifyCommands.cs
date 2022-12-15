@@ -1,4 +1,12 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.ComponentModel;
+using System.Drawing;
+using System.Linq;
+using System.Threading.Tasks;
+
+using Microsoft.Extensions.Logging;
+
+using ProfanityFilter.Interfaces;
+
 using Remora.Commands.Attributes;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
@@ -8,10 +16,7 @@ using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Rest.Core;
 using Remora.Results;
-using System.ComponentModel;
-using System.Drawing;
-using System.Linq;
-using System.Threading.Tasks;
+
 using Uwuify.DiscordBot.WorkerService.Extensions;
 using Uwuify.Humanizer;
 
@@ -20,15 +25,18 @@ namespace Uwuify.DiscordBot.WorkerService.Commands;
 public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
 {
     private readonly FeedbackService _feedbackService;
+    private readonly IProfanityFilter _profanityFilter;
 
     public UwuifyCommands(ILogger<UwuifyCommands> logger,
         FeedbackService feedbackService,
         ICommandContext ctx,
         IDiscordRestGuildAPI guildApi,
-        IDiscordRestChannelAPI channelApi)
+        IDiscordRestChannelAPI channelApi,
+        IProfanityFilter profanityFilter)
         : base(ctx, logger, guildApi, channelApi)
     {
         _feedbackService = feedbackService;
+        _profanityFilter = profanityFilter;
     }
 
     [Command("uwuify")]
@@ -37,7 +45,7 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
     public async Task<IResult> UwuAsync([Description("Now say something kawaii~")] string text)
     {
         await LogCommandUsageAsync(typeof(UwuifyCommands).GetMethod(nameof(UwuAsync)), text);
-        
+
         if (string.IsNullOrWhiteSpace(text))
         {
             var invalidReply = await _feedbackService.SendContextualErrorAsync("I don't see any message to UwUify.".Uwuify());
@@ -46,8 +54,7 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
                 : Result.FromError(invalidReply);
         }
 
-        var outputMsg = text.Uwuify();
-
+        string outputMsg = CensorAndUwuify(text);
         _logger.LogDebug("{commandName} result: {message}", nameof(UwuAsync), outputMsg);
 
         var reply = await _feedbackService.SendContextualEmbedAsync(new Embed("Uwuify",
@@ -84,7 +91,7 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
 
         await LogCommandUsageAsync(typeof(UwuifyCommands).GetMethod(nameof(UwuThisMessageAsync)), originalMessage);
 
-        var outputMsg = originalMessage.Uwuify();
+        var outputMsg = CensorAndUwuify(originalMessage);
 
         _logger.LogDebug("{commandName} result: {message}", nameof(UwuThisMessageAsync), outputMsg);
 
@@ -99,4 +106,8 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
             ? Result.FromSuccess()
             : Result.FromError(reply);
     }
+
+    private string CensorAndUwuify(string text) => _profanityFilter.ContainsProfanity(text)
+            ? _profanityFilter.CensorString(text).Uwuify(0) // Avoid *-*** situations
+            : text.Uwuify();
 }

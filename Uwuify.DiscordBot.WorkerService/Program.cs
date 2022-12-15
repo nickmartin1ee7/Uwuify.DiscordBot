@@ -7,6 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
+using ProfanityFilter.Interfaces;
+
 using Remora.Commands.Extensions;
 using Remora.Discord.API.Gateway.Commands;
 using Remora.Discord.Commands.Extensions;
@@ -71,6 +73,9 @@ IHost CreateHost(string[] args, IConfigurationRoot configuration, int shardId,
         {
             // Configuration
             serviceCollection
+                .AddTransient<IProfanityFilter>(_ => settings.ProfanityList is null
+                    ? new ProfanityFilter.ProfanityFilter()
+                    : new ProfanityFilter.ProfanityFilter(settings.ProfanityList))
                 .AddSingleton(configuration)
                 .AddSingleton(configuration
                     .GetSection(nameof(DiscordSettings))

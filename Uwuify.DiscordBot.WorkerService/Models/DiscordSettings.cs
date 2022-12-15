@@ -8,4 +8,5 @@ public class DiscordSettings
     public int Shards { get; set; } = 1;
     public string MetricsUri { get; set; }
     public string MetricsToken { get; set; }
+    public string[] ProfanityList { get; set; }
 }
