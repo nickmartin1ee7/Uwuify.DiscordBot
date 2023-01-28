@@ -1,4 +1,6 @@
-﻿namespace Uwuify.DiscordBot.WorkerService.Models;
+﻿using System;
+
+namespace Uwuify.DiscordBot.WorkerService.Models;
 
 public class DiscordSettings
 {
@@ -8,5 +10,6 @@ public class DiscordSettings
     public int Shards { get; set; } = 1;
     public string MetricsUri { get; set; }
     public string MetricsToken { get; set; }
-    public string[] ProfanityList { get; set; }
+    public string ProfanityWords { get; set; }
+    public string[] ProfanityList => ProfanityWords?.Split(',') ?? Array.Empty<string>();
 }

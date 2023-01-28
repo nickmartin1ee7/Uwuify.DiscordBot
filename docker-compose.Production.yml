@@ -9,6 +9,7 @@ services:
         - DiscordSettings__Shards
         - DiscordSettings__MetricsUri
         - DiscordSettings__MetricsToken
+        - DiscordSettings__ProfanityWords
     depends_on:
         - seq
     deploy:
