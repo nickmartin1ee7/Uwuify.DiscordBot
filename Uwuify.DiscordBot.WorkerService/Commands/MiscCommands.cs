@@ -1,6 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Drawing;
+using System.Linq;
+using System.Threading.Tasks;
+
 using Microsoft.Extensions.Logging;
+
 using Remora.Commands.Attributes;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
@@ -10,10 +16,7 @@ using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Rest.Core;
 using Remora.Results;
-using System.ComponentModel;
-using System.Drawing;
-using System.Linq;
-using System.Threading.Tasks;
+
 using Uwuify.DiscordBot.WorkerService.Extensions;
 
 namespace Uwuify.DiscordBot.WorkerService.Commands;
@@ -21,18 +24,24 @@ namespace Uwuify.DiscordBot.WorkerService.Commands;
 public class MiscCommands : LoggedCommandGroup<MiscCommands>
 {
     private static readonly string s_fakeToken = Convert.ToBase64String(Enumerable.Range(0, 50)
-        .Select(_ => (byte) Random.Shared.Next()).ToArray());
+        .Select(_ => (byte)Random.Shared.Next()).ToArray());
 
-    private static readonly Dictionary<string, (int ArgCount, string CommandFormat)> s_fakeCommands = new()
+    private static readonly Dictionary<string, (int ArgCount, Func<string, string> Evaluator)> s_fakeCommands = new()
     {
-        ["cat"] = (1, s_fakeToken),
-        ["echo"] = (1, "{0}"),
-        ["ls"] = (0, ".\n..\ntoken.txt"),
-        ["reboot"] = (1, "Failed to write reboot parameter file: Permission denied"),
-        ["shutdown"] = (1, "Failed to write shutdown parameter file: Permission denied"),
-        ["whoami"] = (0, "root"),
-        ["help"] = (0, @"GNU bash, version 4.4.23(1)-release (x86_64-pc-msys)
-These shell commands are defined internally.  Type `help' to see this list.
+        ["cat"] = (1, fileName => fileName switch
+        {
+            "..." => "Oh dear! Aren't you clever? Get your hands out of my honey pot!",
+            "token.txt" => s_fakeToken,
+            _ => $"cat: {fileName}: No such file or directory"
+        }),
+        ["echo"] = (-1, input => input),
+        ["ls"] = (0, _ => ".\n..\n...\ntoken.txt"),
+        ["reboot"] = (1, _ => "Failed to write reboot parameter file: Permission denied"),
+        ["shutdown"] = (1, _ => "Failed to write shutdown parameter file: Permission denied"),
+        ["sudo"] = (-1, _ => "Not in the sudoers file.  This incident will be reported."),
+        ["whoami"] = (0, _ => "root"),
+        ["help"] = (0, _ => @"GNU bash, version 4.4.23(1)-release (x86_64-pc-msys)
+These shell commands are defined internally.  Type `help` to see this list.
 
 cat [FILE]
 echo [arg ...]
@@ -64,9 +73,9 @@ whoami
     {
         await LogCommandUsageAsync(typeof(MiscCommands).GetMethod(nameof(FakeEvalAsync)), text);
 
-        string[] cmdLine;
-        
-        if (string.IsNullOrWhiteSpace(text) || !(cmdLine = text.Split(' ')).Any())
+        string[] splitText;
+
+        if (string.IsNullOrWhiteSpace(text) || !(splitText = text.Split(' ')).Any())
         {
             var invalidReply = await _feedbackService.SendContextualErrorAsync("Not a valid input.");
             return invalidReply.IsSuccess
@@ -74,26 +83,44 @@ whoami
                 : Result.FromError(invalidReply);
         }
 
-        var cmd = cmdLine[0];
-        var hasCommand = s_fakeCommands.ContainsKey(cmd);
-        string descriptionText;
+        var command = splitText[0];
 
-        if (hasCommand)
+        string consoleOutput;
+        string descriptionOutput = $"Exit code did not indicate success.{Environment.NewLine}Try \"**help**\" to display information about builtin commands.";
+        int exitCode = 0;
+
+        if (s_fakeCommands.ContainsKey(command))
         {
-            descriptionText = cmdLine.Length - 1 == s_fakeCommands[cmd].ArgCount
-                ? string.Format(s_fakeCommands[cmd].CommandFormat, cmdLine.Skip(1).ToArray())
-                : $"bash: {cmd}: wrong amount of arguments";
+            if (s_fakeCommands[command].ArgCount == -1 // Unlimited args
+                && splitText.Length - 1 > 0 // But has at least one
+                || splitText.Length - 1 == s_fakeCommands[command].ArgCount) // Or matches explicitly
+            {
+                descriptionOutput = "System responded successfully.";
+                consoleOutput = s_fakeCommands[command].Evaluator(string.Join(' ', splitText[1..]));
+            }
+            else
+            {
+                exitCode = 1;
+                consoleOutput = $"bash: {command}: wrong amount of arguments";
+            }
         }
         else
         {
-            descriptionText = $"bash: {cmd}: command not found";
+            exitCode = 127;
+            consoleOutput = $"bash: {command}: command not found";
         }
 
-        _logger.LogDebug("Responding with: {evalText}", descriptionText);
-        
-        var reply = await _feedbackService.SendContextualEmbedAsync(new Embed("Eval",
-                Description: descriptionText,
-                Colour: new Optional<Color>(Color.Red)),
+        _logger.LogDebug("Responding with: {evalText}", consoleOutput);
+
+        var reply = await _feedbackService.SendContextualEmbedAsync(new Embed("Admin Console (Evaluation)",
+                Description: descriptionOutput,
+                Fields: new List<EmbedField>
+                {
+                    new EmbedField("Exit Code", $"`{exitCode}`"),
+                    new EmbedField("Console Output", $"```bash{Environment.NewLine}{consoleOutput}```")
+                },
+                Colour: new Optional<Color>(Color.Red),
+                Footer: new EmbedFooter($"Execution took {Random.Shared.Next(8, 35) + Random.Shared.NextDouble():N2} ms")),
             ct: CancellationToken);
 
         return reply.IsSuccess
