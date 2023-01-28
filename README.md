@@ -11,4 +11,4 @@ If you're just interested in trying it out, [invite it](https://discord.com/api/
 
 Invite link: https://discord.com/api/oauth2/authorize?client_id=868362243992080394&permissions=0&scope=bot%20applications.commands
 
-![image](https://user-images.githubusercontent.com/58752614/206926444-3bffa6b6-b68b-46e7-b80f-e08e594452ae.png)
+![image](https://i.imgur.com/yoLEQSp.png)
