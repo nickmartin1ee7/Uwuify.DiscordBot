@@ -53,7 +53,8 @@ try
     await Parallel.ForEachAsync(shardIds, async (shardId, ct) =>
     {
         var client = CreateHost(args, configuration, shardId, settings);
-        await StartupActions(client); var delay = TimeSpan.FromSeconds(10 * createdShards++);
+        await StartupActions(client);
+        var delay = TimeSpan.FromSeconds(10 * createdShards++);
         await Task.Delay(delay, ct); // Internal sharding must be delayed by at least 5s
         await client.RunAsync(ct);
     });
