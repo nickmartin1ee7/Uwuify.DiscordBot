@@ -1,4 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+using Microsoft.Extensions.Logging;
+
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
@@ -7,12 +12,8 @@ using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Services;
 using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Responders;
-using Remora.Rest.Core;
 using Remora.Results;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+
 using Uwuify.DiscordBot.WorkerService.Extensions;
 using Uwuify.DiscordBot.WorkerService.Models;
 
@@ -44,7 +45,7 @@ public class ReadyResponder : IResponder<IReady>
         void RememberInitialGuildIds()
         {
             ShortTermMemory.ShardsReady.Add(gatewayEvent.Shard.Value.ShardID);
-            
+
             foreach (var gatewayEventGuild in gatewayEvent.Guilds)
                 ShortTermMemory.KnownGuilds.Add(gatewayEventGuild.ID);
         }
@@ -69,36 +70,14 @@ public class ReadyResponder : IResponder<IReady>
             }
         }
 
-        async Task LogClientDetailsAsync()
+        void LogClientDetails()
         {
-            var shardUserCount = 0;
-            var shardGuilds = new List<Snowflake>(gatewayEvent.Guilds.Count);
-
-            _logger.LogTrace("Populating total details for shard #{shardId} on {shardGuildCount} guilds...",
-                gatewayEvent.Shard.Value.ShardID,
-                gatewayEvent.Guilds.Count);
-            
-            foreach (var guild in gatewayEvent.Guilds)
-            {
-                shardGuilds.Add(guild.ID);
-
-                var guildPreview = await _guildApi.GetGuildPreviewAsync(guild.ID, ct);
-
-                if (!guildPreview.IsSuccess)
-                    continue;
-
-                shardUserCount += guildPreview.Entity.ApproximateMemberCount.HasValue
-                    ? guildPreview.Entity.ApproximateMemberCount.Value
-                    : 0;
-            }
-
             _logger.LogInformation(
-                "{botUser} is online for {shardGuildCount} guilds and {shardUserCount} users. Guilds: {guilds}",
+                "{botUser} is online for {shardGuildCount} guilds. Guilds: {guilds}",
                 gatewayEvent.User.ToFullUsername(),
                 gatewayEvent.Guilds.Count,
-                shardUserCount,
-                shardGuilds);
-            
+                gatewayEvent.Guilds);
+
             if (!gatewayEvent.Guilds.Any())
                 _logger.LogWarning("Shard #{shardId} has no guilds!",
                     gatewayEvent.Shard.Value.ShardID);
@@ -112,11 +91,11 @@ public class ReadyResponder : IResponder<IReady>
                 gatewayEvent.Shard.Value.ShardID,
                 gatewayEvent.Shard.Value.ShardID + 1,
                 gatewayEvent.Shard.Value.ShardCount);
-            
+
             // Last shard should log guild count
             if (ShortTermMemory.ShardsReady.Count == gatewayEvent.Shard.Value.ShardCount)
                 _logger.LogGuildCount();
-            
+
             // First shard can update global state
             if (gatewayEvent.Shard.Value.ShardID == 0)
             {
@@ -125,7 +104,7 @@ public class ReadyResponder : IResponder<IReady>
             }
         }
 
-        _ = Task.Run(LogClientDetailsAsync, ct);
+        LogClientDetails();
 
         return Result.FromSuccess();
     }
