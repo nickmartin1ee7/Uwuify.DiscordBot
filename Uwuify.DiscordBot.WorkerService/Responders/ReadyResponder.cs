@@ -52,6 +52,9 @@ public class ReadyResponder : IResponder<IReady>
 
         void UpdatePresence()
         {
+            if (string.IsNullOrWhiteSpace(_settings.Status))
+                return;
+
             var updateCommand = new UpdatePresence(ClientStatus.Online, false, null, new IActivity[]
             {
                 new Activity(_settings.Status, ActivityType.Watching)
