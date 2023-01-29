@@ -23,19 +23,16 @@ public class ReadyResponder : IResponder<IReady>
 {
     private readonly ILogger<ReadyResponder> _logger;
     private readonly DiscordGatewayClient _discordGatewayClient;
-    private readonly IDiscordRestGuildAPI _guildApi;
     private readonly DiscordSettings _settings;
     private readonly SlashService _slashService;
 
     public ReadyResponder(ILogger<ReadyResponder> logger,
         DiscordGatewayClient discordGatewayClient,
-        IDiscordRestGuildAPI guildApi,
         DiscordSettings settings,
         SlashService slashService)
     {
         _logger = logger;
         _discordGatewayClient = discordGatewayClient;
-        _guildApi = guildApi;
         _settings = settings;
         _slashService = slashService;
     }
