@@ -74,7 +74,9 @@ IHost CreateHost(string[] args, IConfigurationRoot configuration, int shardId,
         {
             // Configuration
             serviceCollection
-                .AddTransient<IProfanityFilter>(_ => settings.ProfanityList is null
+                .AddTransient<IProfanityFilter>(_ =>
+                    string.IsNullOrWhiteSpace(settings.ProfanityWords)
+                    || !settings.ProfanityList.Any()
                     ? new ProfanityFilter.ProfanityFilter()
                     : new ProfanityFilter.ProfanityFilter(settings.ProfanityList))
                 .AddSingleton(configuration)
