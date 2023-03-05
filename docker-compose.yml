@@ -13,8 +13,14 @@ services:
         - DiscordSettings__MetricsUri
         - DiscordSettings__MetricsToken
         - DiscordSettings__ProfanityWords
+    secrets:
+        - UwuifyHealthCheckUri
     depends_on:
         - seq
+    healthcheck:
+        test: curl -f $$(cat /run/secrets/UwuifyHealthCheckUri) || exit 1
+        start_period: 0s
+        interval: 1m
 
   seq:
     image: datalust/seq:latest
@@ -27,3 +33,7 @@ services:
 
 volumes:
   seqdata:
+
+secrets:
+  UwuifyHealthCheckUri:
+    external: true
