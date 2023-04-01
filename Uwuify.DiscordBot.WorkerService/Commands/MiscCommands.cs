@@ -131,7 +131,7 @@ whoami
     [Command("feedback")]
     [CommandType(ApplicationCommandType.ChatInput)]
     [Ephemeral]
-    [Description("Leave feedback for the developer")]
+    [Description("Leave feedback or report an issue for the developer to review")]
     public async Task<IResult> FeedbackAsync([Description("Enter your feedback to the developer")] string text)
     {
         await LogCommandUsageAsync(typeof(MiscCommands).GetMethod(nameof(FeedbackAsync)), text);
@@ -144,10 +144,10 @@ whoami
                 : Result.FromError(invalidReply);
         }
 
-        _logger.LogInformation("New feedback left by {userName}. Feedback: {feedbackText}", _ctx.User.ToFullUsername(), text.Trim());
+        _logger.LogInformation("New feedback left by {userName}. Feedback: {feedbackText}", _ctx.TryGetUser().ToFullUsername(), text.Trim());
 
         var reply = await _feedbackService.SendContextualEmbedAsync(new Embed("Feedback Submitted",
-                Description: "Thank you for your feedback! A developer will review your comments shortly.",
+                Description: "Thank you for your feedback! The developer will review your comments shortly.",
                 Colour: new Optional<Color>(Color.PaleVioletRed)),
             ct: CancellationToken);
 

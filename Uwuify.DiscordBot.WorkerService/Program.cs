@@ -106,18 +106,6 @@ IHost CreateHost(string[] args, IConfigurationRoot configuration, int shardId,
         })
         .Build();
 
-void ValidateSlashCommandSupport(SlashService slashService)
-{
-    var checkSlashSupport = slashService.SupportsSlashCommands();
-
-    if (!checkSlashSupport.IsSuccess)
-    {
-        Log.Logger.Warning(
-            "The registered commands of the bot don't support slash commands: {Reason}",
-            checkSlashSupport.Error!.Message);
-    }
-}
-
 async Task UpdateDebugSlashCommands(DiscordSettings discordSettings, SlashService slashService)
 {
     var debugServerString = discordSettings.DebugServerId;
@@ -139,8 +127,6 @@ async Task UpdateDebugSlashCommands(DiscordSettings discordSettings, SlashServic
 
 async Task StartupActions(IHost client)
 {
-    ValidateSlashCommandSupport(client.Services.GetRequiredService<SlashService>());
-
 #if DEBUG
     await UpdateDebugSlashCommands(
         client.Services.GetRequiredService<DiscordSettings>(),

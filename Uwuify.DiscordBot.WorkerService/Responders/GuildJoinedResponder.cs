@@ -1,9 +1,12 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Threading;
+using System.Threading.Tasks;
+
+using Microsoft.Extensions.Logging;
+
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
-using System.Threading;
-using System.Threading.Tasks;
+
 using Uwuify.DiscordBot.WorkerService.Extensions;
 using Uwuify.DiscordBot.WorkerService.Models;
 
@@ -20,20 +23,31 @@ public class GuildJoinedResponder : IResponder<IGuildCreate>
 
     public Task<Result> RespondAsync(IGuildCreate gatewayEvent, CancellationToken ct = new())
     {
-        if (ShortTermMemory.KnownGuilds.Contains(gatewayEvent.ID))
-            return Task.FromResult(Result.FromSuccess());
-        
-        if (gatewayEvent.MemberCount.HasValue)
-            _logger.LogInformation("Joined new guild: {guildName} ({guildId}) with {userCount} users.",
-                gatewayEvent.Name,
-                gatewayEvent.ID,
-                gatewayEvent.MemberCount.Value);
-        else
-            _logger.LogInformation("Joined new guild: {guildName} ({guildId})",
-                gatewayEvent.Name,
-                gatewayEvent.ID);
+        gatewayEvent.Guild.Switch(
+            g =>
+            {
+                if (ShortTermMemory.KnownGuilds.Contains(g.ID))
+                    return;
 
-        ShortTermMemory.KnownGuilds.Add(gatewayEvent.ID);
+                _logger.LogInformation("Joined new guild (available): {guildName} ({guildId}) with {userCount} users.",
+                    g.Name,
+                    g.ID,
+                    g.MemberCount);
+
+                ShortTermMemory.KnownGuilds.Add(g.ID);
+            },
+            g =>
+            {
+                if (ShortTermMemory.KnownGuilds.Contains(g.ID))
+                    return;
+
+                _logger.LogInformation("Joined new guild (unavailable): {guildId}.",
+                    g.ID);
+
+                ShortTermMemory.KnownGuilds.Add(g.ID);
+            });
+
+
 
         _logger.LogGuildCount();
 

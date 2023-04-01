@@ -1,11 +1,15 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+
+using Microsoft.Extensions.Logging;
+
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Contexts;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
+using Remora.Discord.Commands.Extensions;
+
 using Uwuify.DiscordBot.WorkerService.Extensions;
 
 namespace Uwuify.DiscordBot.WorkerService.Commands;
@@ -32,18 +36,21 @@ public class LoggedCommandGroup<TCommandGroup> : CommandGroup
             .First(a => a.AttributeType == typeof(CommandAttribute))
             .ConstructorArguments.First().Value;
 
-        var guildName = await _guildApi.GetGuildAsync(_ctx.GuildID.Value, ct: CancellationToken);
+        _ctx.TryGetGuildID(out var guildId);
+        var guild = await _guildApi.GetGuildAsync(guildId.Value, ct: CancellationToken);
 
-        var channelName = await _channelApi.GetChannelAsync(_ctx.ChannelID, ct: CancellationToken);
+        _ctx.TryGetChannelID(out var channelId);
+        var channel = await _channelApi.GetChannelAsync(channelId.Value, ct: CancellationToken);
 
+        var user = _ctx.TryGetUser();
         _logger.LogInformation("{commandName} triggered by {userName} ({userId}) in #{channel} ({channelId}); {guildName} ({guildId}); Message: {message}",
             commandName,
-            _ctx.User.ToFullUsername(),
-            _ctx.User.ID,
-            channelName.Entity.Name.Value,
-            _ctx.ChannelID,
-            guildName.Entity.Name,
-            _ctx.GuildID.Value,
+            user.ToFullUsername(),
+            user.ID,
+            channel.Entity.Name.Value,
+            channel.Entity.ID,
+            guild.Entity.Name,
+            guild.Entity.ID,
             string.Join(' ', commandArguments));
     }
 }
