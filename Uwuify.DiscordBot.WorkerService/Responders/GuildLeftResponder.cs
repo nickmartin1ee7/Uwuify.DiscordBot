@@ -1,9 +1,13 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+using Microsoft.Extensions.Logging;
+
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
-using System.Threading;
-using System.Threading.Tasks;
+
 using Uwuify.DiscordBot.WorkerService.Extensions;
 using Uwuify.DiscordBot.WorkerService.Models;
 
@@ -24,12 +28,15 @@ public class GuildLeftResponder : IResponder<IGuildDelete>
             || gatewayEvent.IsUnavailable.HasValue) // If the unavailable field is not set, the user was removed from the guild.
             return Task.FromResult(Result.FromSuccess());
 
-        _logger.LogInformation("Left guild: {guildId}",
-            gatewayEvent.ID);
-
         ShortTermMemory.KnownGuilds.Remove(gatewayEvent.ID);
 
-        _logger.LogGuildCount();
+        if (ShortTermMemory.StartTime > DateTime.Now.Subtract(TimeSpan.FromMinutes(2)))
+        {
+            _logger.LogInformation("Left guild: {guildId}",
+                gatewayEvent.ID);
+
+            _logger.LogGuildCount();
+        }
 
         return Task.FromResult(Result.FromSuccess());
     }

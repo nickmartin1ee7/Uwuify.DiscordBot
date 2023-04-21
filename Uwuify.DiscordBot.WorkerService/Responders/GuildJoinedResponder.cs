@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging;
@@ -29,27 +30,35 @@ public class GuildJoinedResponder : IResponder<IGuildCreate>
                 if (ShortTermMemory.KnownGuilds.Contains(g.ID))
                     return;
 
-                _logger.LogInformation("Joined new guild (available): {guildName} ({guildId}) with {userCount} users.",
-                    g.Name,
-                    g.ID,
-                    g.MemberCount);
-
                 ShortTermMemory.KnownGuilds.Add(g.ID);
+
+                if (ShortTermMemory.StartTime > DateTime.Now.Subtract(TimeSpan.FromMinutes(2)))
+                {
+                    _logger.LogInformation(
+                        "Joined new guild (available): {guildName} ({guildId}) with {userCount} users.",
+                        g.Name,
+                        g.ID,
+                        g.MemberCount);
+
+                    _logger.LogGuildCount();
+                }
+
             },
             g =>
             {
                 if (ShortTermMemory.KnownGuilds.Contains(g.ID))
                     return;
 
-                _logger.LogInformation("Joined new guild (unavailable): {guildId}.",
-                    g.ID);
-
                 ShortTermMemory.KnownGuilds.Add(g.ID);
+
+                if (ShortTermMemory.StartTime > DateTime.Now.Subtract(TimeSpan.FromMinutes(2)))
+                {
+                    _logger.LogInformation("Joined new guild (unavailable): {guildId}.",
+                        g.ID);
+
+                    _logger.LogGuildCount();
+                }
             });
-
-
-
-        _logger.LogGuildCount();
 
         return Task.FromResult(Result.FromSuccess());
     }

@@ -127,9 +127,18 @@ async Task UpdateDebugSlashCommands(DiscordSettings discordSettings, SlashServic
 
 async Task StartupActions(IHost client)
 {
+    UpdateStartTime();
+
 #if DEBUG
     await UpdateDebugSlashCommands(
         client.Services.GetRequiredService<DiscordSettings>(),
         client.Services.GetRequiredService<SlashService>());
 #endif
+}
+
+void UpdateStartTime()
+{
+    var now = DateTime.Now;
+    if (ShortTermMemory.StartTime < now)
+        ShortTermMemory.StartTime = now;
 }
