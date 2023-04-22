@@ -68,7 +68,7 @@ whoami
     [Command("eval")]
     [CommandType(ApplicationCommandType.ChatInput)]
     [Ephemeral]
-    [Description("For internal use only")]
+    [Description("Administrator Console - For internal use only. Don't use!")]
     public async Task<IResult> FakeEvalAsync([Description("bash $")] string text)
     {
         await LogCommandUsageAsync(typeof(MiscCommands).GetMethod(nameof(FakeEvalAsync)), text);
