@@ -16,14 +16,20 @@ namespace Uwuify.DiscordBot.WorkerService.Responders;
 public class GuildJoinedResponder : IResponder<IGuildCreate>
 {
     private readonly ILogger<GuildJoinedResponder> _logger;
+    private readonly DiscordSettings _settings;
 
-    public GuildJoinedResponder(ILogger<GuildJoinedResponder> logger)
+    public GuildJoinedResponder(ILogger<GuildJoinedResponder> logger,
+        DiscordSettings settings)
     {
         _logger = logger;
+        _settings = settings;
     }
 
     public Task<Result> RespondAsync(IGuildCreate gatewayEvent, CancellationToken ct = new())
     {
+        if (ShortTermMemory.ShardsReady.Count != _settings.Shards)
+            return Task.FromResult(Result.FromSuccess());
+
         gatewayEvent.Guild.Switch(
             g =>
             {

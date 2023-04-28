@@ -72,10 +72,9 @@ public class ReadyResponder : IResponder<IReady>
         void LogClientDetails()
         {
             _logger.LogInformation(
-                "{botUser} is online for {shardGuildCount} guilds. Guilds: {guilds}",
+                "{botUser} is online for {shardGuildCount} guilds.",
                 gatewayEvent.User.ToFullUsername(),
-                gatewayEvent.Guilds.Count,
-                gatewayEvent.Guilds);
+                gatewayEvent.Guilds.Count);
 
             if (!gatewayEvent.Guilds.Any())
                 _logger.LogWarning("Shard #{shardId} has no guilds!",
