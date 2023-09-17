@@ -23,10 +23,4 @@
     <PackageReference Include="Serilog.Sinks.Seq" Version="5.2.2" />
     <PackageReference Include="Uwuify.Humanizer" Version="1.2.5" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Content Update="appsettings.Development.json">
-      <DependentUpon>appsettings.json</DependentUpon>
-    </Content>
-  </ItemGroup>
 </Project>

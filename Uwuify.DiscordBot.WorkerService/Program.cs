@@ -23,12 +23,11 @@ using Serilog;
 using Uwuify.DiscordBot.WorkerService.Commands;
 using Uwuify.DiscordBot.WorkerService.Models;
 
-
-var configuration = new ConfigurationBuilder()
-    .AddJsonFile("appsettings.json")
-    .AddJsonFile("appsettings.Development.json", true)
-    .AddEnvironmentVariables()
+var host = Host
+    .CreateDefaultBuilder()
     .Build();
+
+var configuration = host.Services.GetRequiredService<IConfiguration>();
 
 var settings = configuration
     .GetSection(nameof(DiscordSettings))
@@ -65,7 +64,7 @@ catch (Exception e)
     Log.CloseAndFlush();
 }
 
-IHost CreateHost(string[] args, IConfigurationRoot configuration, int shardId,
+IHost CreateHost(string[] args, IConfiguration configuration, int shardId,
     DiscordSettings settings) =>
     Host.CreateDefaultBuilder(args)
         .UseSerilog(Log.Logger)

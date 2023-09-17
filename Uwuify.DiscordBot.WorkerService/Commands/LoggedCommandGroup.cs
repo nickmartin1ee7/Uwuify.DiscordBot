@@ -36,13 +36,23 @@ public class LoggedCommandGroup<TCommandGroup> : CommandGroup
             .First(a => a.AttributeType == typeof(CommandAttribute))
             .ConstructorArguments.First().Value;
 
-        _ctx.TryGetGuildID(out var guildId);
+        var user = _ctx.TryGetUser();
+
+        if (!_ctx.TryGetGuildID(out var guildId))
+        {
+            _logger.LogInformation("{commandName} triggered by {userName} ({userId}) in DM; Message: {message}",
+                commandName,
+                user.ToFullUsername(),
+                user.ID,
+                string.Join(' ', commandArguments));
+            return;
+        }
+
         var guild = await _guildApi.GetGuildAsync(guildId.Value, ct: CancellationToken);
 
         _ctx.TryGetChannelID(out var channelId);
         var channel = await _channelApi.GetChannelAsync(channelId.Value, ct: CancellationToken);
 
-        var user = _ctx.TryGetUser();
         _logger.LogInformation("{commandName} triggered by {userName} ({userId}) in #{channel} ({channelId}); {guildName} ({guildId}); Message: {message}",
             commandName,
             user.ToFullUsername(),
