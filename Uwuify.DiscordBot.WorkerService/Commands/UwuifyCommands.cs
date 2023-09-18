@@ -1,6 +1,9 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging;
@@ -18,6 +21,7 @@ using Remora.Rest.Core;
 using Remora.Results;
 
 using Uwuify.DiscordBot.WorkerService.Extensions;
+using Uwuify.DiscordBot.WorkerService.Models;
 using Uwuify.Humanizer;
 
 namespace Uwuify.DiscordBot.WorkerService.Commands;
@@ -26,17 +30,26 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
 {
     private readonly FeedbackService _feedbackService;
     private readonly IProfanityFilter _profanityFilter;
+    private readonly HttpClient _httpClient;
+    private readonly RateLimitGuardService _rateLimitGuardService;
+    private readonly DiscordSettings _discordSettings;
 
     public UwuifyCommands(ILogger<UwuifyCommands> logger,
         FeedbackService feedbackService,
         ICommandContext ctx,
         IDiscordRestGuildAPI guildApi,
         IDiscordRestChannelAPI channelApi,
-        IProfanityFilter profanityFilter)
+        IProfanityFilter profanityFilter,
+        HttpClient httpClient,
+        RateLimitGuardService rateLimitGuardService,
+        DiscordSettings discordSettings)
         : base(ctx, logger, guildApi, channelApi)
     {
         _feedbackService = feedbackService;
         _profanityFilter = profanityFilter;
+        _httpClient = httpClient;
+        _rateLimitGuardService = rateLimitGuardService;
+        _discordSettings = discordSettings;
     }
 
     [Command("uwuify")]
@@ -105,6 +118,87 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
         return reply.IsSuccess
             ? Result.FromSuccess()
             : Result.FromError(reply);
+    }
+
+    [Command("fortune")]
+    [CommandType(ApplicationCommandType.ChatInput)]
+    [Description("Ask the UwU fortune teller for your fortune")]
+    public async Task<IResult> FortuneAsync()
+    {
+        await LogCommandUsageAsync(typeof(UwuifyCommands).GetMethod(nameof(FortuneAsync)));
+
+        _rateLimitGuardService.StartRenewalJob();
+        var user = _ctx.TryGetUser();
+
+        if (_rateLimitGuardService.IsRateLimited(user.ID, out var nextAvailableUsage))
+        {
+            var duration = _discordSettings.RateLimitingUsageFallOffInMilliSeconds;
+            var invalidReply = await _feedbackService.SendContextualErrorAsync(
+                "Your fortune has already been told today! ".Uwuify()
+                + Environment.NewLine
+                + $"Try again at {nextAvailableUsage}.");
+
+            return invalidReply.IsSuccess
+                ? Result.FromSuccess()
+                : Result.FromError(invalidReply);
+        }
+
+        (bool success, string text) = await GenerateFortuneAsync();
+
+        if (!success)
+        {
+            var invalidReply = await _feedbackService.SendContextualErrorAsync(
+                "Your fortune was not clear, try again later!".Uwuify());
+
+            return invalidReply.IsSuccess
+                ? Result.FromSuccess()
+                : Result.FromError(invalidReply);
+        }
+
+        _rateLimitGuardService.RecordUsage(user.ID);
+
+        string title, outputMsg;
+        var splitText = text.Split(" - ");
+
+        if (splitText.Length == 2)
+        {
+            title = splitText[0].Uwuify();
+            outputMsg = splitText[1].Uwuify();
+        }
+        else
+        {
+            title = "UwU Fortune";
+            outputMsg = text.Uwuify();
+        }
+
+        _logger.LogDebug("{commandName} result: {message}", nameof(FortuneAsync), outputMsg);
+
+        var reply = await _feedbackService.SendContextualEmbedAsync(new Embed(title,
+                Description: outputMsg,
+                Colour: new Optional<Color>(Color.PaleVioletRed)),
+            ct: CancellationToken);
+
+        return reply.IsSuccess
+            ? Result.FromSuccess()
+            : Result.FromError(reply);
+    }
+
+    private async Task<(bool Success, string Text)> GenerateFortuneAsync()
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync("/generate?discord");
+
+            var fortuneResponse = await response.Content.ReadFromJsonAsync<FortuneResponse>();
+
+            return (true, fortuneResponse.Fortune);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to generate fortune");
+
+            return (false, null);
+        }
     }
 
     private string CensorAndUwuify(string text)

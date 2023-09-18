@@ -12,4 +12,9 @@ public class DiscordSettings
     public string MetricsToken { get; set; }
     public string ProfanityWords { get; set; }
     public string[] ProfanityList => ProfanityWords?.Split(',') ?? Array.Empty<string>();
+    public int RateLimitingRenewalJobExecutionInMilliSeconds { get; set; }
+    public int RateLimitingMaxUsages { get; set; }
+    public int RateLimitingUsageFallOffInMilliSeconds { get; set; }
+    public string FortuneUri { get; set; }
+    public string FortuneApiKey { get; set; }
 }

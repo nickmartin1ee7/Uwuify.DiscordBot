@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.Configuration;
@@ -20,6 +21,7 @@ using Remora.Rest.Core;
 
 using Serilog;
 
+using Uwuify.DiscordBot.WorkerService;
 using Uwuify.DiscordBot.WorkerService.Commands;
 using Uwuify.DiscordBot.WorkerService.Models;
 
@@ -81,7 +83,21 @@ IHost CreateHost(string[] args, IConfiguration configuration, int shardId,
                 .AddSingleton(configuration)
                 .AddSingleton(configuration
                     .GetSection(nameof(DiscordSettings))
-                    .Get<DiscordSettings>());
+            .Get<DiscordSettings>());
+
+            serviceCollection.AddSingleton<RateLimitGuardService>();
+
+            serviceCollection.AddSingleton<HttpClient>(sp =>
+            {
+                var client = sp
+                    .GetRequiredService<IHttpClientFactory>()
+                    .CreateClient(nameof(UwuifyCommands));
+
+                client.BaseAddress = new Uri(settings.FortuneUri);
+                client.DefaultRequestHeaders.Add("X-API-KEY", settings.FortuneApiKey);
+
+                return client;
+            });
 
             // Discord
             serviceCollection
