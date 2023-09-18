@@ -10,6 +10,11 @@ services:
         - DiscordSettings__MetricsUri
         - DiscordSettings__MetricsToken
         - DiscordSettings__ProfanityWords
+        - DiscordSettings__RateLimitingRenewalJobExecutionInMilliSeconds
+        - DiscordSettings__RateLimitingMaxUsages
+        - DiscordSettings__RateLimitingUsageFallOffInMilliSeconds
+        - DiscordSettings__FortuneUri
+        - DiscordSettings__FortuneApiKey
     secrets:
         - UwuifyHealthCheckUri
     depends_on:
