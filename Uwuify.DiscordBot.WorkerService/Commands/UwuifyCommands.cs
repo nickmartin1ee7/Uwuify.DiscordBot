@@ -62,6 +62,9 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
         if (string.IsNullOrWhiteSpace(text))
         {
             var invalidReply = await _feedbackService.SendContextualErrorAsync("I don't see any message to UwUify.".Uwuify());
+
+            _logger.LogDebug("Unable to uwuify: provided text was empty");
+
             return invalidReply.IsSuccess
                 ? Result.FromSuccess()
                 : Result.FromError(invalidReply);
@@ -97,6 +100,9 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
         if (string.IsNullOrWhiteSpace(originalMessage))
         {
             var invalidReply = await _feedbackService.SendContextualErrorAsync("I don't see any message to UwUify.".Uwuify());
+
+            _logger.LogDebug("Unable to uwuify: message has no content");
+
             return invalidReply.IsSuccess
                 ? Result.FromSuccess()
                 : Result.FromError(invalidReply);
@@ -138,6 +144,11 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
                 + Environment.NewLine
                 + $"Try again at {nextAvailableUsage}.");
 
+            _logger.LogInformation("Rate-limited fortune for user {userName} ({userId}). Not ready until {fortuneTimeout}",
+                user.ToFullUsername(),
+                user.ID,
+                nextAvailableUsage);
+
             return invalidReply.IsSuccess
                 ? Result.FromSuccess()
                 : Result.FromError(invalidReply);
@@ -147,6 +158,8 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
 
         if (!success)
         {
+            _logger.LogWarning("Failed to generate fortune for user");
+
             var invalidReply = await _feedbackService.SendContextualErrorAsync(
                 "Your fortune was not clear, try again later!".Uwuify());
 
@@ -195,7 +208,7 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to generate fortune");
+            _logger.LogError(ex, "Failed to request fortune from backend");
 
             return (false, null);
         }
