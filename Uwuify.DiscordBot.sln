@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Uwuify.DiscordBot.WorkerSer
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{31A6E8CD-A746-4027-AB14-1654A349C9FE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Uwuify.DiscordBot.Tests", "..\Uwuify.DiscordBot.Tests\Uwuify.DiscordBot.Tests.csproj", "{4098FC55-7BF4-4344-93EB-7621CB3A577F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Uwuify.DiscordBot.Tests", "Uwuify.DiscordBot.Tests\Uwuify.DiscordBot.Tests.csproj", "{4098FC55-7BF4-4344-93EB-7621CB3A577F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
