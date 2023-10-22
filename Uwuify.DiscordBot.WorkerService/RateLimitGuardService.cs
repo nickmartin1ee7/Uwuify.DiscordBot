@@ -46,9 +46,10 @@ public class RateLimitGuardService : IDisposable
             {
                 foreach (var usage in usageProfile.Value.Usages)
                 {
-                    var spanSinceUsage = DateTimeOffset.Now - usage;
+                    var nextAvailableUsage = usage.Add(TimeSpan.FromMilliseconds(_settings.RateLimitingUsageFallOffInMilliSeconds));
 
-                    if (spanSinceUsage > TimeSpan.FromMilliseconds(_settings.RateLimitingUsageFallOffInMilliSeconds))
+                    // Required time has elapsed to remove usage (ie. falloff)
+                    if (DateTimeOffset.Now > nextAvailableUsage)
                     {
                         if (usageProfilesToModify.TryGetValue(usageProfile.Key, out var enqueuedModifications))
                         {
@@ -81,6 +82,7 @@ public class RateLimitGuardService : IDisposable
 
     public bool IsRateLimited(Snowflake id, out DateTimeOffset? nextAvailableUsage)
     {
+        var now = DateTimeOffset.Now;
         nextAvailableUsage = null;
 
         if (!_usageDict.TryGetValue(id, out var usageProfile)
@@ -88,9 +90,11 @@ public class RateLimitGuardService : IDisposable
             return false;
 
         var oldestUsage = usageProfile.Usages.OrderBy(up => up).First();
-        var spanSinceUsage = DateTimeOffset.Now - oldestUsage;
 
-        nextAvailableUsage = DateTimeOffset.Now.Add(spanSinceUsage.Add(TimeSpan.FromMilliseconds(_settings.RateLimitingUsageFallOffInMilliSeconds)));
+        nextAvailableUsage = oldestUsage.Add(TimeSpan.FromMilliseconds(_settings.RateLimitingUsageFallOffInMilliSeconds));
+
+        if (now <= nextAvailableUsage)
+            return true;
 
         return usageProfile.TotalUsage >= _settings.RateLimitingMaxUsages;
     }

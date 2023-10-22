@@ -138,7 +138,6 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
 
         if (_rateLimitGuardService.IsRateLimited(user.ID, out var nextAvailableUsage))
         {
-            var duration = _discordSettings.RateLimitingUsageFallOffInMilliSeconds;
             var invalidReply = await _feedbackService.SendContextualErrorAsync(
                 "Your fortune has already been told today! ".Uwuify()
                 + Environment.NewLine

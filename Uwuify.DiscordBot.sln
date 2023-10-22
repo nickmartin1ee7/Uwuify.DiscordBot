@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Uwuify.DiscordBot.WorkerSer
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{31A6E8CD-A746-4027-AB14-1654A349C9FE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Uwuify.DiscordBot.Tests", "..\Uwuify.DiscordBot.Tests\Uwuify.DiscordBot.Tests.csproj", "{4098FC55-7BF4-4344-93EB-7621CB3A577F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,13 +43,23 @@ Global
 		{31A6E8CD-A746-4027-AB14-1654A349C9FE}.Release|x64.Build.0 = Release|Any CPU
 		{31A6E8CD-A746-4027-AB14-1654A349C9FE}.Release|x86.ActiveCfg = Release|Any CPU
 		{31A6E8CD-A746-4027-AB14-1654A349C9FE}.Release|x86.Build.0 = Release|Any CPU
+		{4098FC55-7BF4-4344-93EB-7621CB3A577F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4098FC55-7BF4-4344-93EB-7621CB3A577F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4098FC55-7BF4-4344-93EB-7621CB3A577F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4098FC55-7BF4-4344-93EB-7621CB3A577F}.Debug|x64.Build.0 = Debug|Any CPU
+		{4098FC55-7BF4-4344-93EB-7621CB3A577F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4098FC55-7BF4-4344-93EB-7621CB3A577F}.Debug|x86.Build.0 = Debug|Any CPU
+		{4098FC55-7BF4-4344-93EB-7621CB3A577F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4098FC55-7BF4-4344-93EB-7621CB3A577F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4098FC55-7BF4-4344-93EB-7621CB3A577F}.Release|x64.ActiveCfg = Release|Any CPU
+		{4098FC55-7BF4-4344-93EB-7621CB3A577F}.Release|x64.Build.0 = Release|Any CPU
+		{4098FC55-7BF4-4344-93EB-7621CB3A577F}.Release|x86.ActiveCfg = Release|Any CPU
+		{4098FC55-7BF4-4344-93EB-7621CB3A577F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3FE655DB-5742-488F-A210-C3753367D713}
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection
 EndGlobal
