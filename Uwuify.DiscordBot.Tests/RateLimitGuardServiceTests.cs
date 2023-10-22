@@ -11,7 +11,9 @@ namespace Uwuify.DiscordBot.Tests
         public async void IsRateLimitedAndStartRenewalJob_FalloffOldUsages()
         {
             // Arrange
-            var delay = 50;
+            var delay = 1000;
+            var userDelay = delay + 5;
+
             var service = new RateLimitGuardService(new DiscordSettings
             {
                 RateLimitingRenewalJobExecutionInMilliSeconds = 1,
@@ -27,9 +29,9 @@ namespace Uwuify.DiscordBot.Tests
             service.RecordUsage(snowflake);
 
             // Assert
-            Assert.True(service.IsRateLimited(snowflake, out var nextAvailableUsage1));
-            await Task.Delay(TimeSpan.FromMilliseconds(delay));
-            Assert.False(service.IsRateLimited(snowflake, out var nextAvailableUsage2));
+            Assert.True(service.IsRateLimited(snowflake, out var nextAvailableUsage1), $"Should be rate limited! Next usage was: {nextAvailableUsage1}.");
+            await Task.Delay(TimeSpan.FromMilliseconds(userDelay));
+            Assert.False(service.IsRateLimited(snowflake, out var nextAvailableUsage2), $"Should not be rate limited! Previous usage was: {nextAvailableUsage1}; Next usage was: {nextAvailableUsage2}.");
         }
     }
 }
