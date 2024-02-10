@@ -48,10 +48,10 @@ public class LoggedCommandGroup<TCommandGroup> : CommandGroup
             return;
         }
 
-        var guild = await _guildApi.GetGuildAsync(guildId.Value, ct: CancellationToken);
+        var guild = await _guildApi.GetGuildAsync(guildId, ct: CancellationToken);
 
         _ctx.TryGetChannelID(out var channelId);
-        var channel = await _channelApi.GetChannelAsync(channelId.Value, ct: CancellationToken);
+        var channel = await _channelApi.GetChannelAsync(channelId, ct: CancellationToken);
 
         _logger.LogInformation("{commandName} triggered by {userName} ({userId}) in #{channel} ({channelId}); {guildName} ({guildId}); Message: {message}",
             commandName,
