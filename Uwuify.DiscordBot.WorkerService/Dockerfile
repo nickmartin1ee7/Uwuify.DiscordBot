@@ -3,7 +3,7 @@ WORKDIR /app
 RUN apt update \
 	&& apt install -y curl
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["Uwuify.DiscordBot.WorkerService/Uwuify.DiscordBot.WorkerService.csproj", "Uwuify.DiscordBot.WorkerService/"]
 RUN dotnet restore "Uwuify.DiscordBot.WorkerService/Uwuify.DiscordBot.WorkerService.csproj"
