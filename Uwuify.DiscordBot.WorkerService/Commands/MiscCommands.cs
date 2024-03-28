@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -23,6 +24,7 @@ namespace Uwuify.DiscordBot.WorkerService.Commands;
 
 public class MiscCommands : LoggedCommandGroup<MiscCommands>
 {
+    private static readonly ConcurrentQueue<FakeEvaluation> s_commandInvocations = new();
     private static readonly string s_fakeToken = Convert.ToBase64String(Enumerable.Range(0, 50)
         .Select(_ => (byte)Random.Shared.Next()).ToArray());
 
@@ -38,19 +40,22 @@ public class MiscCommands : LoggedCommandGroup<MiscCommands>
         ["ls"] = (0, _ => ".\n..\n...\ntoken.txt"),
         ["reboot"] = (1, _ => "Failed to write reboot parameter file: Permission denied"),
         ["shutdown"] = (1, _ => "Failed to write shutdown parameter file: Permission denied"),
-        ["sudo"] = (-1, _ => "Not in the sudoers file.  This incident will be reported."),
-        ["whoami"] = (0, _ => "root"),
         ["help"] = (0, _ => @"GNU bash, version 4.4.23(1)-release (x86_64-pc-msys)
 These shell commands are defined internally.  Type `help` to see this list.
 
 cat [FILE]
 echo [arg ...]
 help
+history
 ls
 reboot [TIME]
 shutdown [TIME]
 whoami
-")
+"),
+        ["history"] = (0, _ => string.Join(Environment.NewLine, s_commandInvocations
+            .Select(cmd => $"{cmd.InvocationCount}  {cmd.CommandLine}"))),
+        ["sudo"] = (-1, _ => "Not in the sudoers file.  This incident will be reported."),
+        ["whoami"] = (0, _ => "root"),
     };
 
     private readonly FeedbackService _feedbackService;
@@ -84,6 +89,14 @@ whoami
         }
 
         var command = splitText[0];
+
+        if (s_commandInvocations.Count >= 10)
+        {
+            _ = s_commandInvocations.TryDequeue(out _);
+        }
+
+        var lastEval = s_commandInvocations.LastOrDefault();
+        s_commandInvocations.Enqueue(new FakeEvaluation((lastEval?.InvocationCount ?? 0) + 1, text));
 
         string consoleOutput;
         string descriptionOutput = $"Exit code did not indicate success.{Environment.NewLine}Try \"**help**\" to display information about builtin commands.";
@@ -155,4 +168,5 @@ whoami
             ? Result.FromSuccess()
             : Result.FromError(reply);
     }
+    private record FakeEvaluation(int InvocationCount, string CommandLine);
 }
