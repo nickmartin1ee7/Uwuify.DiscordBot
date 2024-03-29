@@ -19,6 +19,9 @@ services:
         - UwuifyHealthCheckUri
     depends_on:
         - seq
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
     healthcheck:
         test: curl -f $$(cat /run/secrets/UwuifyHealthCheckUri) || exit 1
         start_period: 0s
