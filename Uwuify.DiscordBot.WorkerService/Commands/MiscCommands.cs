@@ -1,12 +1,14 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging;
+
+using PrimS.Telnet;
 
 using Remora.Commands.Attributes;
 using Remora.Discord.API.Abstractions.Objects;
@@ -22,42 +24,8 @@ using Uwuify.DiscordBot.WorkerService.Extensions;
 
 namespace Uwuify.DiscordBot.WorkerService.Commands;
 
-public class MiscCommands : LoggedCommandGroup<MiscCommands>
+public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
 {
-    private static readonly ConcurrentQueue<FakeEvaluation> s_commandInvocations = new();
-    private static readonly string s_fakeToken = Convert.ToBase64String(Enumerable.Range(0, 50)
-        .Select(_ => (byte)Random.Shared.Next()).ToArray());
-
-    private static readonly Dictionary<string, (int ArgCount, Func<string, string> Evaluator)> s_fakeCommands = new()
-    {
-        ["cat"] = (1, fileName => fileName switch
-        {
-            "..." => "Oh dear! Aren't you clever? Get your hands out of my honey pot!",
-            "token.txt" => s_fakeToken,
-            _ => $"cat: {fileName}: No such file or directory"
-        }),
-        ["echo"] = (-1, input => input),
-        ["ls"] = (0, _ => ".\n..\n...\ntoken.txt"),
-        ["reboot"] = (1, _ => "Failed to write reboot parameter file: Permission denied"),
-        ["shutdown"] = (1, _ => "Failed to write shutdown parameter file: Permission denied"),
-        ["help"] = (0, _ => @"GNU bash, version 4.4.23(1)-release (x86_64-pc-msys)
-These shell commands are defined internally.  Type `help` to see this list.
-
-cat [FILE]
-echo [arg ...]
-help
-history
-ls
-reboot [TIME]
-shutdown [TIME]
-whoami
-"),
-        ["history"] = (0, _ => string.Join(Environment.NewLine, s_commandInvocations
-            .Select(cmd => $"{cmd.InvocationCount}  {cmd.CommandLine}"))),
-        ["sudo"] = (-1, _ => "Not in the sudoers file.  This incident will be reported."),
-        ["whoami"] = (0, _ => "root"),
-    };
-
     private readonly FeedbackService _feedbackService;
 
     public MiscCommands(ILogger<MiscCommands> logger,
@@ -78,9 +46,7 @@ whoami
     {
         await LogCommandUsageAsync(typeof(MiscCommands).GetMethod(nameof(FakeEvalAsync)), text);
 
-        string[] splitText;
-
-        if (string.IsNullOrWhiteSpace(text) || !(splitText = text.Split(' ')).Any())
+        if (string.IsNullOrWhiteSpace(text))
         {
             var invalidReply = await _feedbackService.SendContextualErrorAsync("Not a valid input.");
             return invalidReply.IsSuccess
@@ -88,39 +54,55 @@ whoami
                 : Result.FromError(invalidReply);
         }
 
-        var command = splitText[0];
+        string descriptionOutput = $"Exit code did not indicate success.";
+        string consoleOutput = "Socket error";
+        var sw = new Stopwatch();
+        var color = Color.Green;
 
-        if (s_commandInvocations.Count >= 10)
+        try
         {
-            _ = s_commandInvocations.TryDequeue(out _);
-        }
+            sw.Start();
+            var telnet = new Client("localhost", 2223, CancellationToken);
 
-        var lastEval = s_commandInvocations.LastOrDefault();
-        s_commandInvocations.Enqueue(new FakeEvaluation((lastEval?.InvocationCount ?? 0) + 1, text));
-
-        string consoleOutput;
-        string descriptionOutput = $"Exit code did not indicate success.{Environment.NewLine}Try \"**help**\" to display information about builtin commands.";
-        int exitCode = 0;
-
-        if (s_fakeCommands.ContainsKey(command))
-        {
-            if (s_fakeCommands[command].ArgCount == -1 // Unlimited args
-                && splitText.Length - 1 > 0 // But has at least one
-                || splitText.Length - 1 == s_fakeCommands[command].ArgCount) // Or matches explicitly
+            // Login
+            await telnet.WriteLineAsync("root");
+            if ((await telnet.ReadAsync(TimeSpan.FromSeconds(2))).Contains("Password"))
             {
-                descriptionOutput = "System responded successfully.";
-                consoleOutput = s_fakeCommands[command].Evaluator(string.Join(' ', splitText[1..]));
+                await telnet.WriteLineAsync("uwuify");
+                _ = await telnet.ReadAsync(TimeSpan.FromSeconds(2));
             }
-            else
+
+            await telnet.WriteLineAsync(text);
+            var result = await telnet.ReadAsync(TimeSpan.FromSeconds(2));
+            sw.Stop();
+
+            if (result.Length != 0)
             {
-                exitCode = 1;
-                consoleOutput = $"bash: {command}: wrong amount of arguments";
+                descriptionOutput = "Executed successfully.";
+
+                var split = result.Split('\n');
+                var sb = new StringBuilder();
+                foreach (var lineSplit in split)
+                {
+                    var trimmedLineSplit = lineSplit.Trim();
+                    if (trimmedLineSplit.StartsWith("\u001b[4l")
+                        || trimmedLineSplit.StartsWith("\u001b[4h"))
+                    {
+                        sb.AppendLine(trimmedLineSplit[4..]);
+                    }
+                    else
+                    {
+                        sb.AppendLine(trimmedLineSplit);
+                    }
+                }
+                consoleOutput = sb.ToString();
             }
         }
-        else
+        catch (Exception ex)
         {
-            exitCode = 127;
-            consoleOutput = $"bash: {command}: command not found";
+            color = Color.Red;
+            consoleOutput = ex.Message;
+            _logger.LogError(ex, "Failed to invoke telnet command");
         }
 
         _logger.LogDebug("Responding with: {evalText}", consoleOutput);
@@ -129,11 +111,10 @@ whoami
                 Description: descriptionOutput,
                 Fields: new List<EmbedField>
                 {
-                    new EmbedField("Exit Code", $"`{exitCode}`"),
                     new EmbedField("Console Output", $"```bash{Environment.NewLine}{consoleOutput}```")
                 },
-                Colour: new Optional<Color>(Color.Red),
-                Footer: new EmbedFooter($"Execution took {Random.Shared.Next(8, 35) + Random.Shared.NextDouble():N2} ms")),
+                Colour: new Optional<Color>(color),
+                Footer: new EmbedFooter($"Execution took {sw.ElapsedMilliseconds} ms")),
             ct: CancellationToken);
 
         return reply.IsSuccess
@@ -168,5 +149,4 @@ whoami
             ? Result.FromSuccess()
             : Result.FromError(reply);
     }
-    private record FakeEvaluation(int InvocationCount, string CommandLine);
 }
