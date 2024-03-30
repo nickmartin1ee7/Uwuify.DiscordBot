@@ -24,7 +24,6 @@ services:
             - DiscordSettings__HoneyPotPort
         depends_on:
             - seq
-            - cowrie
 
     seq:
         image: datalust/seq:latest
@@ -35,18 +34,5 @@ services:
         volumes:
             - seqdata:/data
 
-    cowrie:
-        image: cowrie/cowrie:latest
-        ports:
-            - "11022:2222"
-            - "11023:2223"
-        environment:
-            - COWRIE_TELNET_ENABLED=yes
-        volumes:
-            - cowrieetc:/cowrie/cowrie-git/etc
-            - cowrievar:/cowrie/cowrie-git/var
-
 volumes:
     seqdata:
-    cowrieetc:
-    cowrievar:
