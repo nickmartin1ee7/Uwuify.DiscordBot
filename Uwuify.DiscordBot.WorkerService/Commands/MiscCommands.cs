@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging;
@@ -49,7 +50,7 @@ public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
     [CommandType(ApplicationCommandType.ChatInput)]
     [Ephemeral]
     [Description("Administrator Console - For internal use only. Don't use!")]
-    public async Task<IResult> FakeEvalAsync([Description("bash $")] string text)
+    public async Task<IResult> FakeEvalAsync([Description("$")] string text)
     {
         await LogCommandUsageAsync(typeof(MiscCommands).GetMethod(nameof(FakeEvalAsync)), text);
 
@@ -66,10 +67,12 @@ public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
         var sw = new Stopwatch();
         var color = Color.Green;
 
+        var cts = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken);
+
         try
         {
             sw.Start();
-            var telnet = new Client(_settings.HoneyPotHost, _settings.HoneyPotPort, CancellationToken);
+            using var telnet = new Client(_settings.HoneyPotHost, _settings.HoneyPotPort, cts.Token);
 
             // Login
             await telnet.WriteLineAsync(_settings.HoneyPotUsername);
@@ -110,6 +113,11 @@ public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
             consoleOutput = ex.Message;
             _logger.LogError(ex, "Failed to invoke telnet command");
         }
+        finally
+        {
+            cts.Cancel();
+        }
+
 
         _logger.LogDebug("Responding with: {evalText}", consoleOutput);
 
@@ -117,7 +125,7 @@ public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
                 Description: descriptionOutput,
                 Fields: new List<EmbedField>
                 {
-                    new EmbedField("Console Output", $"```bash{Environment.NewLine}{consoleOutput}```")
+                    new("Console Output", $"```bash{Environment.NewLine}{consoleOutput}```")
                 },
                 Colour: new Optional<Color>(color),
                 Footer: new EmbedFooter($"Execution took {sw.ElapsedMilliseconds} ms")),
