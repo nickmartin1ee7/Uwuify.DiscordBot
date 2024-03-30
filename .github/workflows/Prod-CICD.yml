@@ -52,7 +52,7 @@ jobs:
       
     - name: Build Docker Image (DiscordBot)
       if: ${{ github.ref == 'refs/heads/main' }}
-      run: docker buildx build --platform linux/arm64,linux/amd64 -f "Uwuify.DiscordBot.WorkerService/Dockerfile" --force-rm -t nickmartin1ee7/uwuifydiscordbotworkerservice:latest --push .
+      run: docker buildx build --platform linux/arm64 -f "Uwuify.DiscordBot.WorkerService/Dockerfile" --force-rm -t nickmartin1ee7/uwuifydiscordbotworkerservice:latest --push .
 
   deployment:
     runs-on: self-hosted
