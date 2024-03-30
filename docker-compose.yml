@@ -20,6 +20,7 @@ services:
             - DiscordSettings__FortuneApiKey
         depends_on:
             - seq
+            - cowrie
 
     seq:
         image: datalust/seq:latest
