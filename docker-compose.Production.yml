@@ -15,6 +15,10 @@ services:
             - DiscordSettings__RateLimitingUsageFallOffInMilliSeconds
             - DiscordSettings__FortuneUri
             - DiscordSettings__FortuneApiKey
+            - DiscordSettings__HoneyPotUsername
+            - DiscordSettings__HoneyPotPassword
+            - DiscordSettings__HoneyPotHost
+            - DiscordSettings__HoneyPotPort
         secrets:
             - UwuifyHealthCheckUri
         depends_on:
