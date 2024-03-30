@@ -89,16 +89,11 @@ public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
                 var sb = new StringBuilder();
                 foreach (var lineSplit in split)
                 {
-                    var trimmedLineSplit = lineSplit.Trim();
-                    if (trimmedLineSplit.StartsWith("\u001b[4l")
-                        || trimmedLineSplit.StartsWith("\u001b[4h"))
-                    {
-                        sb.AppendLine(trimmedLineSplit[4..]);
-                    }
-                    else
-                    {
-                        sb.AppendLine(trimmedLineSplit);
-                    }
+                    var cleanedLineSplit = lineSplit
+                        .Replace("\u001b[4l", string.Empty)
+                        .Replace("\u001b[4h", string.Empty)
+                        .Trim();
+                    sb.AppendLine(cleanedLineSplit);
                 }
                 consoleOutput = sb.ToString();
             }
