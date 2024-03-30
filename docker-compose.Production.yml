@@ -32,6 +32,10 @@ services:
             restart_policy:
                 condition: any
                 delay: 5s
+            placement:
+                preferences:
+                    - spread: node.lables.slot
+                    - spread: node.id
 
     seq:
         image: datalust/seq:latest
@@ -46,8 +50,11 @@ services:
             mode: replicated
             update_config:
                 parallelism: 1
-        restart_policy:
-            condition: any
+            restart_policy:
+                condition: any
+            placement:
+                constraints:
+                    - "node.role==manager"
 
     cowrie:
         image: cowrie/cowrie:latest
@@ -64,6 +71,11 @@ services:
             mode: replicated
             update_config:
                 parallelism: 1
+            restart_policy:
+                condition: any
+            placement:
+                constraints:
+                    - "node.role==manager"
 
 volumes:
     seqdata:
