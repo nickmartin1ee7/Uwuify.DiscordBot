@@ -76,6 +76,8 @@ public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
 
             // Login
             await telnet.WriteLineAsync(_settings.HoneyPotUsername);
+            await telnet.WriteLineAsync(_settings.HoneyPotPassword);
+
             while ((await telnet.ReadAsync(_telnetTimeout)).Contains("Password"))
             {
                 await telnet.WriteLineAsync(_settings.HoneyPotPassword);
