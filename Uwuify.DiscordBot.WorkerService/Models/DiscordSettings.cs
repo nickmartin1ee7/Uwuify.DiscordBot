@@ -17,4 +17,6 @@ public class DiscordSettings
     public int RateLimitingUsageFallOffInMilliSeconds { get; set; }
     public string FortuneUri { get; set; }
     public string FortuneApiKey { get; set; }
+    public string HoneyPotUsername { get; set; }
+    public string HoneyPotPassword { get; set; }
 }

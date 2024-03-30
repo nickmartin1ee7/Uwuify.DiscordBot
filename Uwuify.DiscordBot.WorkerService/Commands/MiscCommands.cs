@@ -21,20 +21,25 @@ using Remora.Rest.Core;
 using Remora.Results;
 
 using Uwuify.DiscordBot.WorkerService.Extensions;
+using Uwuify.DiscordBot.WorkerService.Models;
 
 namespace Uwuify.DiscordBot.WorkerService.Commands;
 
 public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
 {
+    private readonly DiscordSettings _settings;
     private readonly FeedbackService _feedbackService;
+    private readonly TimeSpan _telnetTimeout = TimeSpan.FromSeconds(2);
 
     public MiscCommands(ILogger<MiscCommands> logger,
+        DiscordSettings settings,
         FeedbackService feedbackService,
         ICommandContext ctx,
         IDiscordRestGuildAPI guildApi,
         IDiscordRestChannelAPI channelApi)
         : base(ctx, logger, guildApi, channelApi)
     {
+        _settings = settings;
         _feedbackService = feedbackService;
     }
 
@@ -65,15 +70,15 @@ public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
             var telnet = new Client("localhost", 2223, CancellationToken);
 
             // Login
-            await telnet.WriteLineAsync("root");
-            if ((await telnet.ReadAsync(TimeSpan.FromSeconds(2))).Contains("Password"))
+            await telnet.WriteLineAsync(_settings.HoneyPotUsername);
+            if ((await telnet.ReadAsync(_telnetTimeout)).Contains("Password"))
             {
-                await telnet.WriteLineAsync("uwuify");
-                _ = await telnet.ReadAsync(TimeSpan.FromSeconds(2));
+                await telnet.WriteLineAsync(_settings.HoneyPotPassword);
+                _ = await telnet.ReadAsync(_telnetTimeout);
             }
 
             await telnet.WriteLineAsync(text);
-            var result = await telnet.ReadAsync(TimeSpan.FromSeconds(2));
+            var result = await telnet.ReadAsync(_telnetTimeout);
             sw.Stop();
 
             if (result.Length != 0)
