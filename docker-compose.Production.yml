@@ -1,87 +1,87 @@
 version: '3.4'
 
 services:
-    workerservice:
-    image: nickmartin1ee7/uwuifydiscordbotworkerservice:latest
+  workerservice:
+  image: nickmartin1ee7/uwuifydiscordbotworkerservice:latest
+  environment:
+    - DiscordSettings__Token
+    - DiscordSettings__Status
+    - DiscordSettings__Shards
+    - DiscordSettings__MetricsUri
+    - DiscordSettings__MetricsToken
+    - DiscordSettings__ProfanityWords
+    - DiscordSettings__RateLimitingRenewalJobExecutionInMilliSeconds
+    - DiscordSettings__RateLimitingMaxUsages
+    - DiscordSettings__RateLimitingUsageFallOffInMilliSeconds
+    - DiscordSettings__FortuneUri
+    - DiscordSettings__FortuneApiKey
+  secrets:
+    - UwuifyHealthCheckUri
+  depends_on:
+    - seq
+    - cowrie
+  healthcheck:
+    test: curl -f $$(cat /run/secrets/UwuifyHealthCheckUri) || exit 1
+    start_period: 0s
+    interval: 1m
+  deploy:
+    replicas: 1
+    mode: replicated
+    update_config:
+      parallelism: 1
+    restart_policy:
+      condition: any
+      delay: 5s
+    placement:
+      preferences:
+        - spread: node.lables.slot
+        - spread: node.id
+
+  seq:
+    image: datalust/seq:latest
+    ports:
+      - 11080:80
     environment:
-        - DiscordSettings__Token
-        - DiscordSettings__Status
-        - DiscordSettings__Shards
-        - DiscordSettings__MetricsUri
-        - DiscordSettings__MetricsToken
-        - DiscordSettings__ProfanityWords
-        - DiscordSettings__RateLimitingRenewalJobExecutionInMilliSeconds
-        - DiscordSettings__RateLimitingMaxUsages
-        - DiscordSettings__RateLimitingUsageFallOffInMilliSeconds
-        - DiscordSettings__FortuneUri
-        - DiscordSettings__FortuneApiKey
-    secrets:
-        - UwuifyHealthCheckUri
-    depends_on:
-        - seq
-        - cowrie
-    healthcheck:
-        test: curl -f $$(cat /run/secrets/UwuifyHealthCheckUri) || exit 1
-        start_period: 0s
-        interval: 1m
+      - ACCEPT_EULA=Y
+    volumes:
+      - seqdata:/data
     deploy:
-        replicas: 1
-        mode: replicated
-        update_config:
-            parallelism: 1
-        restart_policy:
-            condition: any
-            delay: 5s
-        placement:
-            preferences:
-                - spread: node.lables.slot
-                - spread: node.id
+      replicas: 1
+      mode: replicated
+      update_config:
+        parallelism: 1
+    restart_policy:
+      condition: any
+    placement:
+      constraints:
+        - "node.role==manager"
 
-    seq:
-        image: datalust/seq:latest
-        ports:
-            - 11080:80
-        environment:
-            - ACCEPT_EULA=Y
-        volumes:
-            - seqdata:/data
-        deploy:
-            replicas: 1
-            mode: replicated
-            update_config:
-                parallelism: 1
-        restart_policy:
-            condition: any
-        placement:
-            constraints:
-                - "node.role==manager"
-
-    cowrie:
-        image: cowrie/cowrie:latest
-        ports:
-            - "11022:2222"
-            - "11023:2223"
-        environment:
-            - COWRIE_TELNET_ENABLED=yes
-        volumes:
-            - cowrieetc:/cowrie/cowrie-git/etc
-            - cowrievar:/cowrie/cowrie-git/var
-        deploy:
-            replicas: 1
-            mode: replicated
-            update_config:
-                parallelism: 1
-        restart_policy:
-            condition: any
-        placement:
-            constraints:
-                - "node.role==manager"
+  cowrie:
+    image: cowrie/cowrie:latest
+    ports:
+      - "11022:2222"
+      - "11023:2223"
+    environment:
+      - COWRIE_TELNET_ENABLED=yes
+    volumes:
+      - cowrieetc:/cowrie/cowrie-git/etc
+      - cowrievar:/cowrie/cowrie-git/var
+    deploy:
+      replicas: 1
+      mode: replicated
+      update_config:
+        parallelism: 1
+    restart_policy:
+      condition: any
+    placement:
+      constraints:
+        - "node.role==manager"
 
 volumes:
-    seqdata:
-    cowrieetc:
-    cowrievar:
+  seqdata:
+  cowrieetc:
+  cowrievar:
 
 secrets:
-    UwuifyHealthCheckUri:
-        external: true
+  UwuifyHealthCheckUri:
+    external: true

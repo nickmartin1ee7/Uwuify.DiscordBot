@@ -1,48 +1,48 @@
 version: '3.4'
 
 services:
-    uwuify.discordbot.workerservice:
-        image: ${DOCKER_REGISTRY-}uwuifydiscordbotworkerservice
-        build:
-            context: .
-            dockerfile: Uwuify.DiscordBot.WorkerService/Dockerfile
-        environment:
-            - DiscordSettings__Token
-            - DiscordSettings__Status
-            - DiscordSettings__Shards
-            - DiscordSettings__MetricsUri
-            - DiscordSettings__MetricsToken
-            - DiscordSettings__ProfanityWords
-            - DiscordSettings__RateLimitingRenewalJobExecutionInMilliSeconds
-            - DiscordSettings__RateLimitingMaxUsages
-            - DiscordSettings__RateLimitingUsageFallOffInMilliSeconds
-            - DiscordSettings__FortuneUri
-            - DiscordSettings__FortuneApiKey
-        depends_on:
-            - seq
-            - cowrie
+  uwuify.discordbot.workerservice:
+    image: ${DOCKER_REGISTRY-}uwuifydiscordbotworkerservice
+    build:
+      context: .
+      dockerfile: Uwuify.DiscordBot.WorkerService/Dockerfile
+    environment:
+      - DiscordSettings__Token
+      - DiscordSettings__Status
+      - DiscordSettings__Shards
+      - DiscordSettings__MetricsUri
+      - DiscordSettings__MetricsToken
+      - DiscordSettings__ProfanityWords
+      - DiscordSettings__RateLimitingRenewalJobExecutionInMilliSeconds
+      - DiscordSettings__RateLimitingMaxUsages
+      - DiscordSettings__RateLimitingUsageFallOffInMilliSeconds
+      - DiscordSettings__FortuneUri
+      - DiscordSettings__FortuneApiKey
+    depends_on:
+      - seq
+      - cowrie
 
-    seq:
-        image: datalust/seq:latest
-        ports:
-            - 8080:80
-        environment:
-            - ACCEPT_EULA=Y
-        volumes:
-            - seqdata:/data
+  seq:
+    image: datalust/seq:latest
+    ports:
+      - 8080:80
+    environment:
+      - ACCEPT_EULA=Y
+    volumes:
+      - seqdata:/data
 
-    cowrie:
-        image: cowrie/cowrie:latest
-        ports:
-            - "11022:2222"
-            - "11023:2223"
-        environment:
-            - COWRIE_TELNET_ENABLED=yes
-        volumes:
-            - cowrieetc:/cowrie/cowrie-git/etc
-            - cowrievar:/cowrie/cowrie-git/var
+  cowrie:
+    image: cowrie/cowrie:latest
+    ports:
+      - "11022:2222"
+      - "11023:2223"
+    environment:
+      - COWRIE_TELNET_ENABLED=yes
+    volumes:
+      - cowrieetc:/cowrie/cowrie-git/etc
+      - cowrievar:/cowrie/cowrie-git/var
 
 volumes:
-    seqdata:
-    cowrieetc:
-    cowrievar:
+  seqdata:
+  cowrieetc:
+  cowrievar:
