@@ -19,4 +19,6 @@ public class DiscordSettings
     public string FortuneApiKey { get; set; }
     public string HoneyPotUsername { get; set; }
     public string HoneyPotPassword { get; set; }
+    public string HoneyPotHost { get; set; }
+    public int HoneyPotPort { get; set; }
 }

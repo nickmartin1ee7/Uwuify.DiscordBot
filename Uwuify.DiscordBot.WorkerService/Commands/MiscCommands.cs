@@ -67,7 +67,7 @@ public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
         try
         {
             sw.Start();
-            var telnet = new Client("localhost", 2223, CancellationToken);
+            var telnet = new Client(_settings.HoneyPotHost, _settings.HoneyPotPort, CancellationToken);
 
             // Login
             await telnet.WriteLineAsync(_settings.HoneyPotUsername);
