@@ -27,6 +27,8 @@ namespace Uwuify.DiscordBot.WorkerService.Commands;
 
 public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
 {
+    private const int MAX_DISCORD_FIELD_LENGTH = 1_000; // Technically, 1024
+
     private readonly DiscordSettings _settings;
     private readonly FeedbackService _feedbackService;
     private readonly TimeSpan _telnetTimeout = TimeSpan.FromSeconds(2);
@@ -94,6 +96,11 @@ public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
                         .Replace("\u001b[4h", string.Empty)
                         .Trim();
                     sb.AppendLine(cleanedLineSplit);
+                }
+
+                if (sb.Length > MAX_DISCORD_FIELD_LENGTH)
+                {
+                    sb.Remove(MAX_DISCORD_FIELD_LENGTH, sb.Length - MAX_DISCORD_FIELD_LENGTH);
                 }
                 consoleOutput = sb.ToString();
             }
