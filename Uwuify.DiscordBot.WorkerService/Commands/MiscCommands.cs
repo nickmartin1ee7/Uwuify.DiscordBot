@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,7 +28,7 @@ namespace Uwuify.DiscordBot.WorkerService.Commands;
 
 public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
 {
-    private const int MAX_DISCORD_FIELD_LENGTH = 1_000; // Technically, 1024
+    private const int MAX_DISCORD_DESCRIPTION_LENGTH = 4_000;
 
     private readonly DiscordSettings _settings;
     private readonly FeedbackService _feedbackService;
@@ -62,10 +62,9 @@ public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
                 : Result.FromError(invalidReply);
         }
 
-        string descriptionOutput = $"Exit code did not indicate success.";
         string consoleOutput = "Socket error";
         var sw = new Stopwatch();
-        var color = Color.Green;
+        var color = Color.Red;
 
         var cts = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken);
 
@@ -74,13 +73,10 @@ public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
             sw.Start();
             using var telnet = new Client(_settings.HoneyPotHost, _settings.HoneyPotPort, cts.Token);
 
-            // Login
-            await telnet.WriteLineAsync(_settings.HoneyPotUsername);
-            await telnet.WriteLineAsync(_settings.HoneyPotPassword);
-
-            while ((await telnet.ReadAsync(_telnetTimeout)).Contains("Password"))
+            var (IsLoggedIn, NextPrefix) = await TryLogin(telnet);
+            if (!IsLoggedIn)
             {
-                await telnet.WriteLineAsync(_settings.HoneyPotPassword);
+                throw new UnauthorizedAccessException("Access denied");
             }
 
             await telnet.WriteLineAsync(text);
@@ -89,29 +85,27 @@ public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
 
             if (result.Length != 0)
             {
-                descriptionOutput = "Executed successfully.";
-
                 var split = result.Split('\n');
-                var sb = new StringBuilder();
+                var sb = new StringBuilder(CleanLine(NextPrefix) + ' ');
+
                 foreach (var lineSplit in split)
                 {
-                    var cleanedLineSplit = lineSplit
-                        .Replace("\u001b[4l", string.Empty)
-                        .Replace("\u001b[4h", string.Empty)
-                        .Trim();
+                    var cleanedLineSplit = CleanLine(lineSplit);
                     sb.AppendLine(cleanedLineSplit);
                 }
 
-                if (sb.Length > MAX_DISCORD_FIELD_LENGTH)
+                if (sb.Length > MAX_DISCORD_DESCRIPTION_LENGTH)
                 {
-                    sb.Remove(MAX_DISCORD_FIELD_LENGTH, sb.Length - MAX_DISCORD_FIELD_LENGTH);
+                    const string Etcetera = "[TRUNCATED]";
+                    sb.Remove(MAX_DISCORD_DESCRIPTION_LENGTH, sb.Length - MAX_DISCORD_DESCRIPTION_LENGTH);
+                    sb.Append(Etcetera);
                 }
                 consoleOutput = sb.ToString();
+                color = Color.Green;
             }
         }
         catch (Exception ex)
         {
-            color = Color.Red;
             consoleOutput = ex.Message;
             _logger.LogError(ex, "Failed to invoke telnet command");
         }
@@ -124,11 +118,13 @@ public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
         _logger.LogDebug("Responding with: {evalText}", consoleOutput);
 
         var reply = await _feedbackService.SendContextualEmbedAsync(new Embed("Admin Console (Evaluation)",
-                Description: descriptionOutput,
-                Fields: new List<EmbedField>
-                {
-                    new("Console Output", $"```bash{Environment.NewLine}{consoleOutput}```")
-                },
+                Description:
+                    $"**Console Output**" +
+                    $"```bash" +
+                    $"{Environment.NewLine}" +
+                    $"{consoleOutput}" +
+                    $"{Environment.NewLine}" +
+                    $"```",
                 Colour: new Optional<Color>(color),
                 Footer: new EmbedFooter($"Execution took {sw.ElapsedMilliseconds} ms")),
             ct: CancellationToken);
@@ -136,6 +132,49 @@ public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
         return reply.IsSuccess
             ? Result.FromSuccess()
             : Result.FromError(reply);
+    }
+
+    private static string CleanLine(string lineSplit)
+    {
+        return lineSplit
+            .Replace("\u001b[4l", string.Empty)
+            .Replace("\u001b[4h", string.Empty)
+            .Trim();
+    }
+
+    private async Task<(bool IsLoggedIn, string NextPrefix)> TryLogin(Client telnet)
+    {
+        const string PROMPT_USERNAME = "login: ^C";
+        const string PROMPT_PASSWORD = "Password: ";
+
+        var result = await telnet.ReadAsync(_telnetTimeout);
+        if (result.Equals(PROMPT_USERNAME))
+        {
+            await telnet.WriteLineAsync(_settings.HoneyPotUsername);
+        }
+
+        result = await telnet.ReadAsync(_telnetTimeout);
+        if (result.Equals(PROMPT_PASSWORD))
+        {
+            await telnet.WriteLineAsync(_settings.HoneyPotPassword);
+        }
+
+        result = await telnet.ReadAsync(_telnetTimeout);
+        if (result.Contains(PROMPT_USERNAME)
+            || result.Contains(PROMPT_PASSWORD))
+        {
+            return (false, null);
+        }
+
+        var nextPrefix = result.Split('\n').Last();
+
+        if (nextPrefix.Contains($"{_settings.HoneyPotUsername}@")
+            && nextPrefix.Contains(":~#"))
+        {
+            return (true, nextPrefix);
+        }
+
+        return (false, null);
     }
 
     [Command("feedback")]
