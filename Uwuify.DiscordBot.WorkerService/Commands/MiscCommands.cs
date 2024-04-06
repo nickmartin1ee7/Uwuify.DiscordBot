@@ -32,7 +32,8 @@ public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
 
     private readonly DiscordSettings _settings;
     private readonly FeedbackService _feedbackService;
-    private readonly TimeSpan _telnetTimeout = TimeSpan.FromSeconds(2);
+    private readonly TimeSpan _cmdTelnetTimeout = TimeSpan.FromSeconds(2);
+    private readonly TimeSpan _authTelnetTimeout = TimeSpan.FromSeconds(30);
 
     public MiscCommands(ILogger<MiscCommands> logger,
         DiscordSettings settings,
@@ -80,7 +81,7 @@ public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
             }
 
             await telnet.WriteLineAsync(text);
-            var result = await telnet.ReadAsync(_telnetTimeout);
+            var result = await telnet.ReadAsync(_cmdTelnetTimeout);
             sw.Stop();
 
             if (result.Length != 0)
@@ -147,26 +148,26 @@ public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
         const string PROMPT_USERNAME = "login: ^C";
         const string PROMPT_PASSWORD = "Password: ";
 
-        var result = await telnet.ReadAsync(_telnetTimeout);
-        if (result.Equals(PROMPT_USERNAME))
+        var usernamePrompt = await telnet.ReadAsync(_authTelnetTimeout);
+        if (usernamePrompt.Equals(PROMPT_USERNAME))
         {
             await telnet.WriteLineAsync(_settings.HoneyPotUsername);
         }
 
-        result = await telnet.ReadAsync(_telnetTimeout);
-        if (result.Equals(PROMPT_PASSWORD))
+        var passwordPrompt = await telnet.ReadAsync(_authTelnetTimeout);
+        if (passwordPrompt.Equals(PROMPT_PASSWORD))
         {
             await telnet.WriteLineAsync(_settings.HoneyPotPassword);
         }
 
-        result = await telnet.ReadAsync(_telnetTimeout);
-        if (result.Contains(PROMPT_USERNAME)
-            || result.Contains(PROMPT_PASSWORD))
+        var authResultPrompt = await telnet.ReadAsync(_authTelnetTimeout);
+        if (authResultPrompt.Contains(PROMPT_USERNAME)
+            || authResultPrompt.Contains(PROMPT_PASSWORD))
         {
             return (false, null);
         }
 
-        var nextPrefix = result.Split('\n').Last();
+        var nextPrefix = authResultPrompt.Split('\n').Last();
 
         if (nextPrefix.Contains($"{_settings.HoneyPotUsername}@")
             && nextPrefix.Contains(":~#"))
