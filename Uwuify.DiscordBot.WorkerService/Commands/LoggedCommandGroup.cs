@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -32,35 +33,42 @@ public class LoggedCommandGroup<TCommandGroup> : CommandGroup
 
     protected async Task LogCommandUsageAsync(MethodInfo callerMethod, params string[] commandArguments)
     {
-        var commandName = callerMethod.CustomAttributes
-            .First(a => a.AttributeType == typeof(CommandAttribute))
-            .ConstructorArguments.First().Value;
-
-        var user = _ctx.TryGetUser();
-
-        if (!_ctx.TryGetGuildID(out var guildId))
+        try
         {
-            _logger.LogInformation("{commandName} triggered by {userName} ({userId}) in DM; Message: {message}",
+            var commandName = callerMethod.CustomAttributes
+                .First(a => a.AttributeType == typeof(CommandAttribute))
+                .ConstructorArguments.First().Value;
+
+            var user = _ctx.TryGetUser();
+
+            if (!_ctx.TryGetGuildID(out var guildId))
+            {
+                _logger.LogInformation("{commandName} triggered by {userName} ({userId}) in DM; Message: {message}",
+                    commandName,
+                    user.ToFullUsername(),
+                    user.ID,
+                    string.Join(' ', commandArguments));
+                return;
+            }
+
+            var guild = await _guildApi.GetGuildAsync(guildId, ct: CancellationToken);
+
+            _ctx.TryGetChannelID(out var channelId);
+            var channel = await _channelApi.GetChannelAsync(channelId, ct: CancellationToken);
+
+            _logger.LogInformation("{commandName} triggered by {userName} ({userId}) in #{channel} ({channelId}); {guildName} ({guildId}); Message: {message}",
                 commandName,
                 user.ToFullUsername(),
                 user.ID,
+                channel.Entity.Name.Value,
+                channel.Entity.ID,
+                guild.Entity.Name,
+                guild.Entity.ID,
                 string.Join(' ', commandArguments));
-            return;
         }
-
-        var guild = await _guildApi.GetGuildAsync(guildId, ct: CancellationToken);
-
-        _ctx.TryGetChannelID(out var channelId);
-        var channel = await _channelApi.GetChannelAsync(channelId, ct: CancellationToken);
-
-        _logger.LogInformation("{commandName} triggered by {userName} ({userId}) in #{channel} ({channelId}); {guildName} ({guildId}); Message: {message}",
-            commandName,
-            user.ToFullUsername(),
-            user.ID,
-            channel.Entity.Name.Value,
-            channel.Entity.ID,
-            guild.Entity.Name,
-            guild.Entity.ID,
-            string.Join(' ', commandArguments));
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to log command usage");
+        }
     }
 }
