@@ -56,6 +56,21 @@ public class LoggedCommandGroup<TCommandGroup> : CommandGroup
             _ctx.TryGetChannelID(out var channelId);
             var channel = await _channelApi.GetChannelAsync(channelId, ct: CancellationToken);
 
+            if (user is null
+                || !channel.IsDefined()
+                || !guild.IsDefined())
+            {
+                _logger.LogWarning("Partial Log; {commandName} triggered by {userName} ({userId}) in #{channel} ({channelId}); {guildName} ({guildId}); Message: {message}",
+                    commandName,
+                    user?.ToFullUsername() ?? "N/A",
+                    user?.ID.ToString() ?? "N/A",
+                    channel.Entity?.Name.OrDefault()?.ToString() ?? "N/A",
+                    channel.Entity?.ID.ToString() ?? "N/A",
+                    guild.Entity.Name ?? "N/A",
+                    guild.Entity.ID.ToString() ?? "N/A",
+                    string.Join(' ', commandArguments));
+            }
+
             _logger.LogInformation("{commandName} triggered by {userName} ({userId}) in #{channel} ({channelId}); {guildName} ({guildId}); Message: {message}",
                 commandName,
                 user.ToFullUsername(),
