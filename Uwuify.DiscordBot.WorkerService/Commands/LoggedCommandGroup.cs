@@ -41,21 +41,22 @@ public class LoggedCommandGroup<TCommandGroup> : CommandGroup
 
             var user = _ctx.TryGetUser();
 
-            if (!_ctx.TryGetGuildID(out var guildId))
+            if (!_ctx.TryGetGuildID(out var guildId)
+                && user != null)
             {
                 _logger.LogInformation("{commandName} triggered by {userName} ({userId}) in DM; Message: {message}",
                     commandName,
-                    user.ToFullUsername(),
-                    user.ID,
+                    user!.ToFullUsername(),
+                    user!.ID,
                     string.Join(' ', commandArguments));
                 return;
             }
 
             var guild = await _guildApi.GetGuildAsync(guildId, ct: CancellationToken);
-
             _ctx.TryGetChannelID(out var channelId);
             var channel = await _channelApi.GetChannelAsync(channelId, ct: CancellationToken);
 
+            // Handle exceptional scenarios where details around the invoker could not be determined
             if (user is null
                 || !channel.IsDefined()
                 || !guild.IsDefined())
@@ -66,19 +67,20 @@ public class LoggedCommandGroup<TCommandGroup> : CommandGroup
                     user?.ID.ToString() ?? "N/A",
                     channel.Entity?.Name.OrDefault()?.ToString() ?? "N/A",
                     channel.Entity?.ID.ToString() ?? "N/A",
-                    guild.Entity.Name ?? "N/A",
-                    guild.Entity.ID.ToString() ?? "N/A",
+                    guild.Entity?.Name ?? "N/A",
+                    guild.Entity?.ID.ToString() ?? "N/A",
                     string.Join(' ', commandArguments));
+                return;
             }
 
             _logger.LogInformation("{commandName} triggered by {userName} ({userId}) in #{channel} ({channelId}); {guildName} ({guildId}); Message: {message}",
                 commandName,
-                user.ToFullUsername(),
-                user.ID,
-                channel.Entity.Name.Value,
-                channel.Entity.ID,
-                guild.Entity.Name,
-                guild.Entity.ID,
+                user!.ToFullUsername(),
+                user!.ID,
+                channel!.Entity.Name.Value,
+                channel!.Entity.ID,
+                guild!.Entity.Name,
+                guild!.Entity.ID,
                 string.Join(' ', commandArguments));
         }
         catch (Exception ex)
