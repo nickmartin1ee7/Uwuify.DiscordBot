@@ -72,7 +72,8 @@ public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
         try
         {
             sw.Start();
-            using var telnet = new Client(_settings.HoneyPotHost, _settings.HoneyPotPort, cts.Token);
+            using var bs = new TcpByteStream(_settings.HoneyPotHost, _settings.HoneyPotPort);
+            using var telnet = new Client(bs, cts.Token);
 
             var (IsLoggedIn, NextPrefix) = await TryLogin(telnet);
             if (!IsLoggedIn)
