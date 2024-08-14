@@ -6,6 +6,8 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 
+using Humanizer;
+
 using Microsoft.Extensions.Logging;
 
 using ProfanityFilter.Interfaces;
@@ -137,17 +139,21 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
         var user = _ctx.TryGetUser();
 
         var (IsRateLimited, NextAvailableUsageInUtc) = await _rateLimitGuardService.IsRateLimited(user.ID);
-        if (IsRateLimited)
+        if (IsRateLimited && NextAvailableUsageInUtc.HasValue)
         {
+            var fortuneTimeoutDuration = (DateTime.UtcNow - NextAvailableUsageInUtc.Value).Humanize();
+            var fortunateTimeoutDate = new DateTimeOffset(NextAvailableUsageInUtc.Value);
+
             var invalidReply = await _feedbackService.SendContextualErrorAsync(
                 "Your fortune has already been told today! ".Uwuify()
                 + Environment.NewLine
-                + $"Try again at {NextAvailableUsageInUtc}.");
+                + $"Try again in {fortuneTimeoutDuration} (at {fortunateTimeoutDate}).");
 
-            _logger.LogInformation("Rate-limited fortune for user {userName} ({userId}). Not ready until {fortuneTimeout}",
+            _logger.LogInformation("Rate-limited fortune for user {userName} ({userId}). Not ready until {fortuneTimeoutDuration} ({fortuneTimeoutDate})",
                 user.ToFullUsername(),
                 user.ID,
-                NextAvailableUsageInUtc);
+                fortuneTimeoutDuration,
+                fortunateTimeoutDate);
 
             return invalidReply.IsSuccess
                 ? Result.FromSuccess()
