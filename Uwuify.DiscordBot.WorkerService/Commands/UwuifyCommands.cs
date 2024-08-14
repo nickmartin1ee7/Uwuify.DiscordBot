@@ -149,7 +149,7 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
                 + Environment.NewLine
                 + $"Try again in {fortuneTimeoutDuration} (at {fortunateTimeoutDate}).");
 
-            _logger.LogInformation("Rate-limited fortune for user {userName} ({userId}). Not ready until {fortuneTimeoutDuration} ({fortuneTimeoutDate})",
+            _logger.LogInformation("Rate-limited fortune for user {userName} ({userId}). Not ready for {fortuneTimeoutDuration} ({fortuneTimeoutDate})",
                 user.ToFullUsername(),
                 user.ID,
                 fortuneTimeoutDuration,
