@@ -7,23 +7,26 @@ services:
             context: .
             dockerfile: Uwuify.DiscordBot.WorkerService/Dockerfile
         environment:
+            - ConnectionStrings__DataContext=Server=postgres;Port=5432;Database=DataContext;User Id=sa;Password=sa;Include Error Detail=True;
+            - DiscordSettings__DebugServerId
+            - DiscordSettings__Status=Testing Now
             - DiscordSettings__Token
-            - DiscordSettings__Status
-            - DiscordSettings__Shards
-            - DiscordSettings__MetricsUri
-            - DiscordSettings__MetricsToken
-            - DiscordSettings__ProfanityWords
-            - DiscordSettings__RateLimitingRenewalJobExecutionInMilliSeconds
-            - DiscordSettings__RateLimitingMaxUsages
-            - DiscordSettings__RateLimitingUsageFallOffInMilliSeconds
-            - DiscordSettings__FortuneUri
+            - DiscordSettings__Shards=1
+            - DiscordSettings__MetricsUri=https://seq
+            - DiscordSettings__MetricsToken=
+            - DiscordSettings__ProfanityWords=
+            - DiscordSettings__RateLimitingRenewalJobExecutionInMilliSeconds=5000
+            - DiscordSettings__RateLimitingMaxUsages=1
+            - DiscordSettings__RateLimitingUsageFallOffInMilliSeconds=30000
+            - DiscordSettings__FortuneUri=https://fortune
             - DiscordSettings__FortuneApiKey
-            - DiscordSettings__HoneyPotUsername
-            - DiscordSettings__HoneyPotPassword
-            - DiscordSettings__HoneyPotHost
-            - DiscordSettings__HoneyPotPort
+            - DiscordSettings__HoneyPotUsername=root
+            - DiscordSettings__HoneyPotPassword=root
+            - DiscordSettings__HoneyPotHost=cowrie
+            - DiscordSettings__HoneyPotPort=2223
         depends_on:
             - seq
+            - postgres
 
     seq:
         image: datalust/seq:latest
@@ -34,5 +37,25 @@ services:
         volumes:
             - seqdata:/data
 
+    postgres:
+        image: postgres:latest
+        environment:
+            - POSTGRES_DB=DataContext
+            - POSTGRES_USER=sa
+            - POSTGRES_PASSWORD=sa
+        volumes:
+            - postgresdata:/var/lib/postgresql/data
+
+    pgadmin:
+        image: dpage/pgadmin4
+        ports:
+            - 9090:80
+        environment:
+            - PGADMIN_DEFAULT_EMAIL=admin@localhost.com
+            - PGADMIN_DEFAULT_PASSWORD=admin
+        depends_on:
+            - postgres
+
 volumes:
     seqdata:
+    postgresdata:

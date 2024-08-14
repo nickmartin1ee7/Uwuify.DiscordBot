@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -21,6 +22,7 @@ using Remora.Rest.Core;
 
 using Serilog;
 
+using Uwuify.DiscordBot.Data;
 using Uwuify.DiscordBot.WorkerService;
 using Uwuify.DiscordBot.WorkerService.Commands;
 using Uwuify.DiscordBot.WorkerService.Models;
@@ -85,6 +87,13 @@ IHost CreateHost(string[] args, IConfiguration configuration, int shardId,
                     .GetSection(nameof(DiscordSettings))
             .Get<DiscordSettings>());
 
+            serviceCollection.AddDbContext<DataContext>((sp, options) =>
+            {
+                var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString(nameof(DataContext));
+                options.UseNpgsql(connectionString: connectionString);
+            },
+            contextLifetime: ServiceLifetime.Transient);
+
             serviceCollection.AddSingleton<RateLimitGuardService>();
 
             serviceCollection.AddSingleton<HttpClient>(sp =>
@@ -142,6 +151,7 @@ async Task UpdateDebugSlashCommands(DiscordSettings discordSettings, SlashServic
 
 async Task StartupActions(IHost client)
 {
+    await PrepareDatabase(client);
     UpdateStartTime();
 
 #if DEBUG
@@ -156,4 +166,18 @@ void UpdateStartTime()
     var now = DateTime.Now;
     if (ShortTermMemory.StartTime < now)
         ShortTermMemory.StartTime = now;
+}
+
+static async Task PrepareDatabase(IHost client)
+{
+    var dataContext = client.Services.GetRequiredService<DataContext>();
+    var canConnect = await dataContext.Database.CanConnectAsync();
+    if (canConnect)
+    {
+        await dataContext.Database.MigrateAsync();
+    }
+    else
+    {
+        throw new ApplicationException("Database unreachable");
+    }
 }

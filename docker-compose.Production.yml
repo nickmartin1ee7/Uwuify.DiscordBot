@@ -4,8 +4,10 @@ services:
     workerservice:
         image: nickmartin1ee7/uwuifydiscordbotworkerservice:latest
         environment:
-            - DiscordSettings__Token
+            - ConnectionStrings__DataContext
+            - DiscordSettings__DebugServerId
             - DiscordSettings__Status
+            - DiscordSettings__Token
             - DiscordSettings__Shards
             - DiscordSettings__MetricsUri
             - DiscordSettings__MetricsToken
@@ -23,6 +25,7 @@ services:
             - UwuifyHealthCheckUri
         depends_on:
             - seq
+            - postgres
         healthcheck:
             test: curl -f $$(cat /run/secrets/UwuifyHealthCheckUri) || exit 1
             start_period: 0s
@@ -59,8 +62,30 @@ services:
                 constraints:
                     - "node.role==manager"
 
+    postgres:
+        image: postgres:latest
+        ports:
+            - 11432:5432
+        environment:
+            - POSTGRES_DB
+            - POSTGRES_USER
+            - POSTGRES_PASSWORD
+        volumes:
+            - postgresdata:/var/lib/postgresql/data
+
+    pgadmin:
+        image: dpage/pgadmin4
+        ports:
+            - 11090:80
+        environment:
+            - PGADMIN_DEFAULT_EMAIL
+            - PGADMIN_DEFAULT_PASSWORD
+        depends_on:
+            - postgres
+
 volumes:
     seqdata:
+    postgresdata:
 
 secrets:
     UwuifyHealthCheckUri:

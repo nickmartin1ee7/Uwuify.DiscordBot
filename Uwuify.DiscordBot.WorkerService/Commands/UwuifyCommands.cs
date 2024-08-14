@@ -136,17 +136,18 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
         _rateLimitGuardService.StartRenewalJob();
         var user = _ctx.TryGetUser();
 
-        if (_rateLimitGuardService.IsRateLimited(user.ID, out var nextAvailableUsage))
+        var (IsRateLimited, NextAvailableUsageInUtc) = await _rateLimitGuardService.IsRateLimited(user.ID);
+        if (IsRateLimited)
         {
             var invalidReply = await _feedbackService.SendContextualErrorAsync(
                 "Your fortune has already been told today! ".Uwuify()
                 + Environment.NewLine
-                + $"Try again at {nextAvailableUsage}.");
+                + $"Try again at {NextAvailableUsageInUtc}.");
 
             _logger.LogInformation("Rate-limited fortune for user {userName} ({userId}). Not ready until {fortuneTimeout}",
                 user.ToFullUsername(),
                 user.ID,
-                nextAvailableUsage);
+                NextAvailableUsageInUtc);
 
             return invalidReply.IsSuccess
                 ? Result.FromSuccess()
@@ -167,7 +168,7 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
                 : Result.FromError(invalidReply);
         }
 
-        _rateLimitGuardService.RecordUsage(user.ID);
+        await _rateLimitGuardService.RecordUsage(user.ID);
 
         string title, outputMsg;
         var splitText = text.Split(" - ");
