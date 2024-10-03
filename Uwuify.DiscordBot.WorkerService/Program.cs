@@ -37,12 +37,23 @@ var settings = configuration
     .GetSection(nameof(DiscordSettings))
     .Get<DiscordSettings>();
 
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Seq(
-        serverUrl: settings.MetricsUri,
-        apiKey: settings.MetricsToken)
-    .ReadFrom.Configuration(configuration)
-    .CreateLogger();
+if (string.IsNullOrWhiteSpace(settings.MetricsUri))
+{
+    Log.Logger = new LoggerConfiguration()
+        .WriteTo.Console()
+        .ReadFrom.Configuration(configuration)
+        .CreateLogger();
+
+}
+else
+{
+    Log.Logger = new LoggerConfiguration()
+        .WriteTo.Seq(
+            serverUrl: settings.MetricsUri,
+            apiKey: settings.MetricsToken)
+        .ReadFrom.Configuration(configuration)
+        .CreateLogger();
+}
 
 var shardIds = Enumerable.Range(0, settings.Shards);
 var createdShards = 0;
