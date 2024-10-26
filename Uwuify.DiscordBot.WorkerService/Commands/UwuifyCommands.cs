@@ -160,7 +160,7 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
                 : Result.FromError(invalidReply);
         }
 
-        (bool success, string text) = await GenerateFortuneAsync();
+        (bool success, string header, string body) = await GenerateFortuneAsync();
 
         if (!success)
         {
@@ -176,19 +176,8 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
 
         await _rateLimitGuardService.RecordUsage(user.ID);
 
-        string title, outputMsg;
-        var splitText = text.Split(" - ");
-
-        if (splitText.Length == 2)
-        {
-            title = splitText[0].Uwuify();
-            outputMsg = splitText[1].Uwuify();
-        }
-        else
-        {
-            title = "UwU Fortune";
-            outputMsg = text.Uwuify();
-        }
+        var title = (!string.IsNullOrWhiteSpace(header) ? header : "UwU Fortune").Uwuify();
+        var outputMsg = body.Uwuify();
 
         _logger.LogDebug("{commandName} result: {message}", nameof(FortuneAsync), outputMsg);
 
@@ -202,21 +191,21 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
             : Result.FromError(reply);
     }
 
-    private async Task<(bool Success, string Text)> GenerateFortuneAsync()
+    private async Task<(bool Success, string Header, string Body)> GenerateFortuneAsync()
     {
         try
         {
             var response = await _httpClient.GetAsync("/generate?discord");
 
-            var fortuneResponse = await response.Content.ReadFromJsonAsync<FortuneResponse>();
+            var generateResponse = await response.Content.ReadFromJsonAsync<GenerateResponse>();
 
-            return (true, fortuneResponse.Fortune);
+            return (true, generateResponse.fortune.header, generateResponse.fortune.body);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to request fortune from backend");
 
-            return (false, null);
+            return (false, null, null);
         }
     }
 

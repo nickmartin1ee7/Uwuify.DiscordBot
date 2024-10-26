@@ -1,11 +1,16 @@
 ﻿namespace Uwuify.DiscordBot.WorkerService.Models;
 
+public class GenerateResponse
+{
+    public FortuneResponse fortune { get; set; }
+    public double luck { get; set; }
+    public string luckText { get; set; }
+    public string context { get; set; }
+}
 
 public class FortuneResponse
 {
-    public int MaxTokens { get; set; }
-    public float CostLimit { get; set; }
-    public string Context { get; set; }
-    public string Fortune { get; set; }
+    public string header { get; set; }
+    public string body { get; set; }
 }
 
