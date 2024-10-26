@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Net.Http;
@@ -133,6 +134,9 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
     [Description("Ask the UwU fortune teller for your fortune")]
     public async Task<IResult> FortuneAsync()
     {
+        var sw = new Stopwatch();
+        sw.Start();
+
         await LogCommandUsageAsync(typeof(UwuifyCommands).GetMethod(nameof(FortuneAsync)));
 
         _rateLimitGuardService.StartRenewalJob();
@@ -160,7 +164,7 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
                 : Result.FromError(invalidReply);
         }
 
-        (bool success, string header, string body) = await GenerateFortuneAsync();
+        (bool success, string header, string body, string luckText) = await GenerateFortuneAsync();
 
         if (!success)
         {
@@ -176,13 +180,22 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
 
         await _rateLimitGuardService.RecordUsage(user.ID);
 
-        var title = (!string.IsNullOrWhiteSpace(header) ? header : "UwU Fortune").Uwuify();
-        var outputMsg = body.Uwuify();
+        var title = (!string.IsNullOrWhiteSpace(header) ? header : "UwU Fortune");
+        var uwuifiedTitle = title.Uwuify();
+        var uwuifiedBody = body.Uwuify();
+        var uwuifiedLuckText = $"Your Luck is {luckText}".Uwuify();
 
-        _logger.LogDebug("{commandName} result: {message}", nameof(FortuneAsync), outputMsg);
+        sw.Stop();
 
-        var reply = await _feedbackService.SendContextualEmbedAsync(new Embed(title,
-                Description: outputMsg,
+        _logger.LogDebug("{commandName} result: {message}. ElapsedMs: {elapsedMs}", nameof(FortuneAsync), uwuifiedBody, sw.ElapsedMilliseconds);
+
+        var reply = await _feedbackService.SendContextualEmbedAsync(new Embed($"🔮 {uwuifiedTitle} 🥠",
+                Fields:
+                new EmbedField[]
+                {
+                    new(Name: $"🍀 {uwuifiedLuckText} ⛈️", Value: uwuifiedBody)
+                },
+                Footer: new EmbedFooter($"{title} ({luckText}) - {body} ({sw.Elapsed.Milliseconds} ms)"),
                 Colour: new Optional<Color>(Color.PaleVioletRed)),
             ct: CancellationToken);
 
@@ -191,21 +204,20 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
             : Result.FromError(reply);
     }
 
-    private async Task<(bool Success, string Header, string Body)> GenerateFortuneAsync()
+    private async Task<(bool Success, string Header, string Body, string LuckText)> GenerateFortuneAsync()
     {
         try
         {
             var response = await _httpClient.GetAsync("/generate?discord");
-
             var generateResponse = await response.Content.ReadFromJsonAsync<GenerateResponse>();
 
-            return (true, generateResponse.fortune.header, generateResponse.fortune.body);
+            return (true, generateResponse.fortune.header, generateResponse.fortune.body, generateResponse.luckText);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to request fortune from backend");
 
-            return (false, null, null);
+            return default;
         }
     }
 
