@@ -37,6 +37,8 @@ var settings = configuration
     .GetSection(nameof(DiscordSettings))
     .Get<DiscordSettings>();
 
+ArgumentNullException.ThrowIfNull(settings, nameof(DiscordSettings));
+
 if (string.IsNullOrWhiteSpace(settings.MetricsUri))
 {
     Log.Logger = new LoggerConfiguration()

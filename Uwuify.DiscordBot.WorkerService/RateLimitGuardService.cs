@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -17,10 +16,12 @@ namespace Uwuify.DiscordBot.WorkerService;
 
 public class RateLimitGuardService : IDisposable
 {
+    private readonly TimeSpan _slimTimeout = TimeSpan.FromSeconds(5);
     private readonly DiscordSettings _settings;
     private readonly DataContext _standardDataContext;
     private readonly DataContext _renewalDataContext;
     private readonly TaskCompletionSource _firstRenewalJobRun = new();
+    private readonly SemaphoreSlim _standardContextSlim = new(1, 1);
     private Task _renewalJob;
     private CancellationTokenSource _renewalJobCts;
 
@@ -125,7 +126,11 @@ public class RateLimitGuardService : IDisposable
 
         await _firstRenewalJobRun.Task;
 
+        await _standardContextSlim.WaitAsync(_slimTimeout);
+
         var usageProfile = await GetRateLimitProfileBySnowflake(_standardDataContext, id);
+
+        _standardContextSlim.Release();
 
         // Have they never made a rate-limited action before?
         if (usageProfile is null
@@ -158,6 +163,8 @@ public class RateLimitGuardService : IDisposable
     {
         await _firstRenewalJobRun.Task;
 
+        await _standardContextSlim.WaitAsync(_slimTimeout);
+
         try
         {
             var usageProfile = await GetRateLimitProfileBySnowflake(_standardDataContext, id);
@@ -181,6 +188,8 @@ public class RateLimitGuardService : IDisposable
         {
             await _standardDataContext.SaveChangesAsync();
         }
+
+        _standardContextSlim.Release();
     }
 
     public void Dispose()
