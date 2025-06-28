@@ -224,11 +224,19 @@ public class UwuifyCommands : LoggedCommandGroup<UwuifyCommands>
     private string CensorAndUwuify(string text)
     {
         text = text.ToLower();
-        return _profanityFilter.ContainsProfanity(text)
+        text = _profanityFilter.ContainsProfanity(text)
             ? _profanityFilter
                 .CensorString(text)
                 .Uwuify(0)
                 .Replace("*", "\\*")// Avoid *-*** situations
             : text.Uwuify();
+
+        // Trim to 4096 characters to avoid Discord message size limits, with "..." suffix if trimmed
+        if (text.Length > 4096)
+        {
+            text = text[..4093] + "...";
+        }
+
+        return text.Trim();
     }
 }
