@@ -47,10 +47,10 @@ public partial class MiscCommands : LoggedCommandGroup<MiscCommands>
         _feedbackService = feedbackService;
     }
 
-    [Command("eval")]
-    [CommandType(ApplicationCommandType.ChatInput)]
-    [Ephemeral]
-    [Description("Administrator Console - For internal use only. Don't use!")]
+    //[Command("eval")]
+    //[CommandType(ApplicationCommandType.ChatInput)]
+    //[Ephemeral]
+    //[Description("Administrator Console - For internal use only. Don't use!")]
     public async Task<IResult> FakeEvalAsync([Description("$")] string text)
     {
         await LogCommandUsageAsync(typeof(MiscCommands).GetMethod(nameof(FakeEvalAsync)), text);
