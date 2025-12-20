@@ -36,15 +36,16 @@ public class GuildJoinedResponder : IResponder<IGuildCreate>
                 if (ShortTermMemory.KnownGuilds.Contains(g.ID))
                     return;
 
-                ShortTermMemory.KnownGuilds.Add(g.ID);
+                ShortTermMemory.AddKnownGuild(g);
 
                 if (ShortTermMemory.StartTime > DateTime.Now.Subtract(TimeSpan.FromMinutes(2)))
                 {
                     _logger.LogInformation(
-                        "Joined new guild (available): {guildName} ({guildId}) with {userCount} users.",
+                        "Joined new guild (available): {guildName} ({guildId}) with {userCount} users. All Known User Count: {allUserCount}.",
                         g.Name,
                         g.ID,
-                        g.MemberCount);
+                        g.MemberCount,
+                        ShortTermMemory.KnownUserCount);
 
                     _logger.LogGuildCount();
                 }
@@ -55,7 +56,7 @@ public class GuildJoinedResponder : IResponder<IGuildCreate>
                 if (ShortTermMemory.KnownGuilds.Contains(g.ID))
                     return;
 
-                ShortTermMemory.KnownGuilds.Add(g.ID);
+                ShortTermMemory.AddKnownGuild(g);
 
                 if (ShortTermMemory.StartTime > DateTime.Now.Subtract(TimeSpan.FromMinutes(2)))
                 {

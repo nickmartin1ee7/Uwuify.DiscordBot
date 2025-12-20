@@ -43,7 +43,9 @@ public class ReadyResponder : IResponder<IReady>
             ShortTermMemory.ShardsReady.Add(gatewayEvent.Shard.Value.ShardID);
 
             foreach (var gatewayEventGuild in gatewayEvent.Guilds)
-                ShortTermMemory.KnownGuilds.Add(gatewayEventGuild.ID);
+            {
+                ShortTermMemory.AddKnownGuild(gatewayEventGuild);
+            }
         }
 
         void UpdatePresence()
@@ -51,10 +53,10 @@ public class ReadyResponder : IResponder<IReady>
             if (string.IsNullOrWhiteSpace(_settings.Status))
                 return;
 
-            var updateCommand = new UpdatePresence(UserStatus.Online, false, null, new IActivity[]
-            {
+            var updateCommand = new UpdatePresence(UserStatus.Online, false, null,
+            [
                 new Activity(_settings.Status, ActivityType.Watching)
-            });
+            ]);
 
             _discordGatewayClient.SubmitCommand(updateCommand);
         }
